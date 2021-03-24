@@ -5,9 +5,9 @@
   "author": "Dollarsign",
   "license": "MIT",
   "readmeFilename": "README.md",
-  "main": "dist/libs/activemq/index",
+  "main": "dist/index",
   "files": [
-    "dist/libs/**/*",
+    "dist/**/*",
     "*.md"
   ],
   "keywords": [
