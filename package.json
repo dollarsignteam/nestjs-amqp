@@ -1,9 +1,8 @@
 {
   "name": "@dollarsign/nestjs-activemq",
-  "version": "0.0.0",
+  "version": "0.0.0-development",
   "description": "Nestjs ActiveMQ",
   "author": "Dollarsign",
-  "private": true,
   "license": "MIT",
   "readmeFilename": "README.md",
   "main": "dist/libs/activemq/index",
