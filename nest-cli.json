@@ -8,7 +8,8 @@
       "entryFile": "index",
       "sourceRoot": "libs/activemq/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/activemq/tsconfig.lib.json"
+        "tsConfigPath": "libs/activemq/tsconfig.lib.json",
+        "webpack": false
       }
     }
   },
