@@ -31,7 +31,7 @@ and
 yarn lint
 ```
 
-## What is commitlint
+## Commitlint
 
 commitlint checks if your commit messages meet the [conventional commit format](https://conventionalcommits.org).
 
