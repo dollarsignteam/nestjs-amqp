@@ -20,7 +20,7 @@ jobs:
       - name: Test
         run: yarn test
       - name: Build package
-        run: yarn build
+        run: yarn build activemq
       - name: Release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
