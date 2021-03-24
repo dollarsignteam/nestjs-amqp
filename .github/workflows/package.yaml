@@ -1,18 +1,26 @@
 name: Node.js Package
 
-on: push
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node v14
+        uses: actions/setup-node@v1
         with:
           node-version: 14
-      - run: yarn install
-      - run: yarn test
-      - run: yarn build
+      - name: Install dependencies
+        run: yarn install
+      - name: Test
+        run: yarn test
+      - name: Build package
+        run: yarn build
       - name: Release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

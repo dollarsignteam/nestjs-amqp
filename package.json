@@ -1,6 +1,6 @@
 {
   "name": "@dollarsign/nestjs-activemq",
-  "version": "0.0.0-development",
+  "version": "0.0.0",
   "description": "Nestjs ActiveMQ",
   "author": "Dollarsign",
   "private": true,
