@@ -5,10 +5,11 @@ services:
     image: c18s/artemis-adoptopenjdk-11
     ports:
       - 61616:61616
+      - 61613:61613
       - 5445:5445
       - 5672:5672
       - 1883:1883
-      - 61613:61613
+      - 8161:8161
     environment:
       ARTEMIS_USER: user
       ARTEMIS_PASSWORD: pass
