@@ -4,12 +4,12 @@ import {
   AwaitableSenderOptions,
   Connection,
   ConnectionOptions,
-  Delivery,
-  EventContext,
+  generate_uuid,
   Message,
   Receiver,
   ReceiverEvents,
   ReceiverOptions,
+  Session,
 } from 'rhea-promise';
 
 @Injectable()
@@ -45,101 +45,74 @@ export class ActiveMQService implements OnModuleInit {
     return this.connection.createReceiver(options);
   }
 
-  async sendMessage() {
-    const address = 'demo';
-    const senderName = 'sender-1';
-    const senderOptions: AwaitableSenderOptions = {
-      name: senderName,
-      target: { address },
-    };
-
-    const sender = await this.createSender(senderOptions);
-
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < 5; i++) {
-      const message: Message = {
-        body: `Hello World - ${i}`,
-        message_id: i,
-        group_id: 'DEMO',
-      };
-      // eslint-disable-next-line no-await-in-loop
-      const delivery: Delivery = await sender.send(message);
-      this.logger.verbose(
-        `[${this.connection.id}] await sendMessage -> Delivery id: ${delivery.id}, settled: ${delivery.settled}`,
-      );
-    }
-    await sender.close();
-    this.logger.debug('sendMessage: end');
-  }
-
-  async receiveMessage(name: string) {
-    const address = 'demo';
-    const receiverName = name;
-    const receiverOptions: ReceiverOptions = {
-      name: receiverName,
-      source: { address },
-      // onMessage: async (ctx) => {
-      //   this.logger.debug(`message ${name}: ${ctx.message.message_id}`);
-      //   await delay(5000);
-      //   ctx.delivery.reject();
-      // },
-      // onSettled: (ctx) => {
-      //   this.logger.debug(ctx);
-      // },
-      // onError: (ctx) => {
-      //   this.logger.error(ctx.error);
-      // },
-    };
-    const receiver = await this.createReceiver(receiverOptions);
-    receiver.on(ReceiverEvents.message, async (context: EventContext) => {
-      this.logger.verbose(
-        `ReceiverEvents, ${name}: ${context.message.message_id} begin`,
-      );
-      await new Promise((r) => setTimeout(r, 2000));
-      this.logger.debug(
-        `ReceiverEvents, ${name}: ${context.message.message_id} end`,
-      );
-    });
-    this.logger.debug(`receiveMessage ${name}: init`);
-  }
-
   async onModuleInit() {
+    this.logger.verbose('on module init!');
     this.connection = await this.createConnection(this.connectionOptions);
-    await this.receiveMessage('received-1');
-    await this.receiveMessage('received-2');
-    await this.sendMessage();
+    this.logger.verbose(`connection is open: ${this.connection.isOpen()}`);
+    const sessionProducer = await this.connection.createSession();
+    const sessionConsumer = await this.connection.createSession();
+    await this.recevier(sessionConsumer, 'recevier-1');
+    await this.recevier(sessionConsumer, 'recevier-2');
+    await this.recevier(sessionConsumer, 'recevier-3');
+    await this.recevier(sessionConsumer, 'recevier-4');
+    await this.sender(sessionProducer);
+  }
 
-    // this.connection.on('error', (err) => {
-    //   const payload = JSON.stringify(err);
-    //   this.logger.error(`❌ Event[error] ${payload}`);
-    // });
+  private async recevier(sessionConsumer: Session, name: string) {
+    const receiver = await sessionConsumer.createReceiver({
+      name,
+      source: {
+        address: 'demo-1',
+      },
+      autoaccept: false,
+      credit_window: 0,
+    });
+    receiver.on(ReceiverEvents.message, (ctx) => {
+      this.logger.debug(`${name} ${ctx.message.group_id} ${ctx.message.body}`);
+      setTimeout(() => {
+        ctx.delivery.accept();
+        this.logger.verbose(
+          `${name} ${ctx.message.group_id} ${ctx.message.body}: accept`,
+        );
+        receiver.addCredit(1);
+      }, 3000);
+    });
 
-    // this.connection.on('connection_error', (ctx) => {
-    //   if (ctx.error) {
-    //     const payload = JSON.stringify(ctx.error);
-    //     this.logger.error(`❌ Event[connection_error] ${payload}`);
-    //   }
-    // });
+    this.logger.debug(`${name} is open: ${receiver.isOpen()}`);
+    receiver.addCredit(1);
+  }
 
-    // this.connection.on('protocol_error', (err) => {
-    //   this.logger.error(`❌ Event[protocol_error] ${err}`);
-    // });
+  private async sender(sessionProducer: Session) {
+    const sender = await sessionProducer.createAwaitableSender({
+      name: 'sender-1',
+      target: {
+        address: 'demo-1',
+      },
+    });
+    this.logger.debug(`sender is open: ${sender.isOpen()}`);
+    await sender.send(this.getMessage(1, 'A'));
+    await sender.send(this.getMessage(2, 'A'));
+    await sender.send(this.getMessage(3, 'A'));
+    await sender.send(this.getMessage(4, 'A'));
+    await sender.send(this.getMessage(5, 'B'));
+    await sender.send(this.getMessage(6, 'A'));
+    await sender.send(this.getMessage(7, 'B'));
+    await sender.send(this.getMessage(8, 'C'));
+    await sender.send(this.getMessage(9, 'D'));
+    await sender.send(this.getMessage(10, 'E'));
+    await sender.send(this.getMessage(11, 'A'));
+    await sender.send(this.getMessage(12, 'B'));
+    await sender.send(this.getMessage(13, 'B'));
+    await sender.send(this.getMessage(14, 'B'));
+  }
 
-    // this.connection.on('disconnected', (ctx) => {
-    //   if (ctx.error) {
-    //     this.logger.warn(`⚠️ Event[disconnected] ${ctx.error}`);
-    //   }
-    // });
-
-    // this.connection.on('message', (context) => {
-    //   this.logger.log(context.message.body);
-    // });
-
-    // this.connection.once('sendable', (context) => {
-    //   context.sender.send({ body: 'Hello World!' });
-    // });
-
-    // this.connection.open_receiver('demo');
-    // this.connection.open_sender('demo');
+  getMessage(body: number, group_id: string): Message {
+    const message_id = generate_uuid();
+    return {
+      message_id,
+      group_id,
+      body: `${body}`,
+      // durable: true,
+    };
   }
 }
