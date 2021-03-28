@@ -55,14 +55,18 @@ export class ActiveMQService implements OnModuleInit {
     await this.recevier(sessionConsumer, 'recevier-2');
     await this.recevier(sessionConsumer, 'recevier-3');
     await this.recevier(sessionConsumer, 'recevier-4');
-    await this.sender(sessionProducer);
+    await this.recevier(sessionConsumer, 'recevier-5');
+    setTimeout(async () => {
+      await this.sender(sessionProducer, 'sender-1');
+      await this.sender(sessionProducer, 'sender-2');
+    }, 2000);
   }
 
   private async recevier(sessionConsumer: Session, name: string) {
     const receiver = await sessionConsumer.createReceiver({
       name,
       source: {
-        address: 'demo-1',
+        address: 'demo.*',
       },
       autoaccept: false,
       credit_window: 0,
@@ -75,44 +79,31 @@ export class ActiveMQService implements OnModuleInit {
           `${name} ${ctx.message.group_id} ${ctx.message.body}: accept`,
         );
         receiver.addCredit(1);
-      }, 3000);
+      }, 2000);
     });
 
     this.logger.debug(`${name} is open: ${receiver.isOpen()}`);
     receiver.addCredit(1);
   }
 
-  private async sender(sessionProducer: Session) {
+  private async sender(sessionProducer: Session, name: string) {
     const sender = await sessionProducer.createAwaitableSender({
-      name: 'sender-1',
+      name,
       target: {
-        address: 'demo-1',
+        address: `demo.${name}`,
       },
     });
-    this.logger.debug(`sender is open: ${sender.isOpen()}`);
-    await sender.send(this.getMessage(1, 'A'));
-    await sender.send(this.getMessage(2, 'A'));
-    await sender.send(this.getMessage(3, 'A'));
-    await sender.send(this.getMessage(4, 'A'));
-    await sender.send(this.getMessage(5, 'B'));
-    await sender.send(this.getMessage(6, 'A'));
-    await sender.send(this.getMessage(7, 'B'));
-    await sender.send(this.getMessage(8, 'C'));
-    await sender.send(this.getMessage(9, 'D'));
-    await sender.send(this.getMessage(10, 'E'));
-    await sender.send(this.getMessage(11, 'A'));
-    await sender.send(this.getMessage(12, 'B'));
-    await sender.send(this.getMessage(13, 'B'));
-    await sender.send(this.getMessage(14, 'B'));
+    await sender.send(this.getMessage(`${name}`, 'A'));
+    await sender.send(this.getMessage(`${name}`, 'A'));
   }
 
-  getMessage(body: number, group_id: string): Message {
+  getMessage(body: string, group_id: string): Message {
     const message_id = generate_uuid();
     return {
       message_id,
       group_id,
       body: `${body}`,
-      // durable: true,
+      durable: true,
     };
   }
 }
