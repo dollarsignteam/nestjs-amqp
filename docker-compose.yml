@@ -10,6 +10,8 @@ services:
       - 5672:5672
       - 1883:1883
       - 8161:8161
+    volumes:
+      - ./dist/data:/var/lib/artemis-instance/data
     environment:
       ARTEMIS_USER: user
       ARTEMIS_PASSWORD: pass
