@@ -1,0 +1,18 @@
+version: '3'
+services:
+  activemq:
+    container_name: activemq
+    image: rmohr/activemq
+    ports:
+      - 61616:61616
+      - 61613:61613
+      - 61614:61614
+      - 5445:5445
+      - 5672:5672
+      - 1883:1883
+      - 8161:8161
+    volumes:
+      - ./dist/data:/opt/activemq/data
+    # environment:
+    #   ARTEMIS_USER: user
+    #   ARTEMIS_PASSWORD: pass
