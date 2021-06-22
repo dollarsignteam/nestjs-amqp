@@ -1,3 +1,3 @@
 import { ConnectionOptions } from 'rhea-promise';
 
-export interface ActiveMQModuleOptions extends ConnectionOptions {}
+export type ActiveMQModuleOptions = ConnectionOptions;

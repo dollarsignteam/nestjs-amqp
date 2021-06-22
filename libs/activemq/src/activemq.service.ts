@@ -58,9 +58,7 @@ export class ActiveMQService implements OnModuleInit {
     return connection.open();
   }
 
-  async createSender(
-    options: AwaitableSenderOptions,
-  ): Promise<AwaitableSender> {
+  async createSender(options: AwaitableSenderOptions): Promise<AwaitableSender> {
     return this.connection.createAwaitableSender(options);
   }
 
@@ -68,7 +66,7 @@ export class ActiveMQService implements OnModuleInit {
     return this.connection.createReceiver(options);
   }
 
-  async onModuleInit() {
+  async onModuleInit(): Promise<void> {
     this.connection = await this.createConnection(this.connectionOptions);
     this.logger.verbose(`connection is open: ${this.connection.isOpen()}`);
     const sessionProducer = await this.connection.createSession();
@@ -83,7 +81,7 @@ export class ActiveMQService implements OnModuleInit {
     }, 2000);
   }
 
-  private async receiver(sessionConsumer: Session, name: string) {
+  private async receiver(sessionConsumer: Session, name: string): Promise<void> {
     const receiver = await sessionConsumer.createReceiver({
       name,
       source: {
@@ -111,15 +109,11 @@ export class ActiveMQService implements OnModuleInit {
     receiver.on(ReceiverEvents.receiverClose, () => {
       this.logger.error(`ReceiverEvents: receiverClose`);
     });
-    receiver.on(ReceiverEvents.message, (ctx) => {
-      this.logger.verbose(
-        `${name} ${ctx.message.group_id} ${ctx.message.body}`,
-      );
+    receiver.on(ReceiverEvents.message, ctx => {
+      this.logger.verbose(`${name} ${ctx.message.group_id} ${ctx.message.body}`);
       setTimeout(() => {
         ctx.delivery.accept();
-        this.logger.error(
-          `${name} ${ctx.message.group_id} ${ctx.message.body}: Done`,
-        );
+        this.logger.error(`${name} ${ctx.message.group_id} ${ctx.message.body}: Done`);
         receiver.addCredit(1);
       }, 2000);
     });
@@ -129,7 +123,7 @@ export class ActiveMQService implements OnModuleInit {
     this.logger.debug(`${name} is open: ${receiver.isOpen()}`);
   }
 
-  public async sender(sessionProducer: Session, name: string) {
+  public async sender(sessionProducer: Session, name: string): Promise<void> {
     const sender = await sessionProducer.createAwaitableSender({
       name,
       target: {
