@@ -1,4 +1,5 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Logger } from '@dollarsign/logger';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import {
   AwaitableSender,
   AwaitableSenderOptions,

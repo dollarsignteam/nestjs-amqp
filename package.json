@@ -47,7 +47,7 @@
     ]
   },
   "dependencies": {
-    "@dollarsign/logger": "^1.1.3",
+    "@dollarsign/logger": "^1.3.3",
     "rhea-promise": "^2.0.0"
   },
   "peerDependencies": {
