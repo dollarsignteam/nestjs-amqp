@@ -116,3 +116,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# custom
+tsconfig.*.json
+!tsconfig.build.json
+.DS_*

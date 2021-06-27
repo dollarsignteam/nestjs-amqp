@@ -13,7 +13,8 @@
   },
   "plugins": [
     "simple-import-sort",
-    "typescript-sort-keys"
+    "typescript-sort-keys",
+    "eslint-plugin-tsdoc"
   ],
   "rules": {
     "@typescript-eslint/no-parameter-properties": [
@@ -35,6 +36,7 @@
           "request.*.expect"
         ]
       }
-    ]
+    ],
+    "tsdoc/syntax": "warn"
   }
 }
