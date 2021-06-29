@@ -1,8 +1,4 @@
-import { ConnectionOptions } from 'rhea-promise';
-
-import { ConnectionURL } from '../interfaces';
-
-type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
+import { AMQPTransport, ConnectionURL } from '../interfaces';
 
 /**
  * @param url - url string
@@ -10,7 +6,7 @@ type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
  */
 export function parseURL(url: string): ConnectionURL {
   const { protocol, username, password, hostname, port } = new URL(url);
-  let transport: PropType<ConnectionOptions, 'transport'>;
+  let transport: AMQPTransport;
   switch (protocol) {
     case 'amqp:':
       transport = 'tcp';
