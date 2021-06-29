@@ -1,0 +1,2 @@
+export const ACTIVEMQ_MODULE_OPTIONS = 'ACTIVEMQ_MODULE_OPTIONS';
+export const DEFAULT_CONNECTION_NAME = 'default';
