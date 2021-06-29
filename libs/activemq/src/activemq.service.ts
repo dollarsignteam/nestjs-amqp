@@ -35,11 +35,11 @@ export class ActiveMQService implements OnModuleInit {
 
   async createConnection(options: ConnectionOptions): Promise<Connection> {
     const connection = new Connection(options);
-    connection.on(ConnectionEvents.connectionOpen, () => {
-      this.logger.log(`ConnectionEvents: connectionOpen`);
+    connection.on(ConnectionEvents.connectionOpen, (ctx: EventContext) => {
+      this.logger.success(`Connection open`, ctx.connection.id);
     });
     connection.on(ConnectionEvents.settled, () => {
-      this.logger.warn(`ConnectionEvents: settled`);
+      this.logger.verbose(`ConnectionEvents: settled`);
     });
     connection.on(ConnectionEvents.connectionClose, () => {
       this.logger.warn(`ConnectionEvents: connectionClose`);
@@ -47,8 +47,8 @@ export class ActiveMQService implements OnModuleInit {
     connection.on(ConnectionEvents.connectionError, () => {
       this.logger.warn(`ConnectionEvents: connectionClose`);
     });
-    connection.on(ConnectionEvents.disconnected, () => {
-      this.logger.warn(`ConnectionEvents: disconnected`);
+    connection.on(ConnectionEvents.disconnected, (ctx: EventContext) => {
+      this.logger.warn(`Connection disconnected`, ctx.connection.id);
     });
     connection.on(ConnectionEvents.error, () => {
       this.logger.warn(`ConnectionEvents: error`);
@@ -69,17 +69,17 @@ export class ActiveMQService implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     this.connection = await this.createConnection(this.connectionOptions);
-    this.logger.verbose(`connection is open: ${this.connection.isOpen()}`);
-    const sessionProducer = await this.connection.createSession();
-    const sessionConsumer = await this.connection.createSession();
-    await this.receiver(sessionConsumer, 'receiver-1');
-    await this.receiver(sessionConsumer, 'receiver-2');
-    await this.receiver(sessionConsumer, 'receiver-3');
-    await this.receiver(sessionConsumer, 'receiver-4');
-    await this.receiver(sessionConsumer, 'receiver-5');
-    setTimeout(async () => {
-      await this.sender(sessionProducer, 'sender-1');
-    }, 2000);
+    this.logger.info(`connection is open: ${this.connection.isOpen()}`);
+    // const sessionProducer = await this.connection.createSession();
+    // const sessionConsumer = await this.connection.createSession();
+    // await this.receiver(sessionConsumer, 'receiver-1');
+    // await this.receiver(sessionConsumer, 'receiver-2');
+    // await this.receiver(sessionConsumer, 'receiver-3');
+    // await this.receiver(sessionConsumer, 'receiver-4');
+    // await this.receiver(sessionConsumer, 'receiver-5');
+    // setTimeout(async () => {
+    //   await this.sender(sessionProducer, 'sender-1');
+    // }, 2000);
   }
 
   private async receiver(sessionConsumer: Session, name: string): Promise<void> {
@@ -92,36 +92,36 @@ export class ActiveMQService implements OnModuleInit {
       credit_window: 0,
     });
     receiver.on(ReceiverEvents.receiverOpen, (ctx: EventContext) => {
-      this.logger.log(`ReceiverEvents: receiverOpen`);
+      this.logger.info(`ReceiverEvents: receiverOpen`);
       ctx.receiver.addCredit(1);
     });
     receiver.on(ReceiverEvents.settled, () => {
-      this.logger.error(`ReceiverEvents: settled`);
+      this.logger.success(`ReceiverEvents: settled`);
     });
     receiver.on(ReceiverEvents.receiverFlow, () => {
-      this.logger.error(`ReceiverEvents: receiverFlow`);
+      this.logger.success(`ReceiverEvents: receiverFlow`);
     });
     receiver.on(ReceiverEvents.receiverError, () => {
-      this.logger.error(`ReceiverEvents: receiverError`);
+      this.logger.success(`ReceiverEvents: receiverError`);
     });
     receiver.on(ReceiverEvents.receiverDrained, () => {
-      this.logger.error(`ReceiverEvents: receiverDrained`);
+      this.logger.success(`ReceiverEvents: receiverDrained`);
     });
     receiver.on(ReceiverEvents.receiverClose, () => {
-      this.logger.error(`ReceiverEvents: receiverClose`);
+      this.logger.success(`ReceiverEvents: receiverClose`);
     });
     receiver.on(ReceiverEvents.message, ctx => {
       this.logger.verbose(`${name} ${ctx.message.group_id} ${ctx.message.body}`);
       setTimeout(() => {
         ctx.delivery.accept();
-        this.logger.error(`${name} ${ctx.message.group_id} ${ctx.message.body}: Done`);
+        this.logger.success(`${name} ${ctx.message.group_id} ${ctx.message.body}: Done`);
         receiver.addCredit(1);
       }, 2000);
     });
     if (!receiver.hasCredit()) {
       receiver.addCredit(1);
     }
-    this.logger.debug(`${name} is open: ${receiver.isOpen()}`);
+    this.logger.info(`${name} is open: ${receiver.isOpen()}`);
   }
 
   public async sender(sessionProducer: Session, name: string): Promise<void> {
