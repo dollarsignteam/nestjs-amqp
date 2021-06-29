@@ -1,7 +1,7 @@
 import { ConnectionOptions } from 'rhea-promise';
 
 export interface ActiveMQModuleOptions {
-  connectionOptions: ConnectionOptions;
+  connectionOptions?: ConnectionOptions;
   connectionUri?: string;
   name: string;
 }
