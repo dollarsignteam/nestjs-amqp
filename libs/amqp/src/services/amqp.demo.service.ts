@@ -16,8 +16,8 @@ import {
 } from 'rhea-promise';
 
 @Injectable()
-export class ActiveMQService implements OnModuleInit {
-  private readonly logger = new Logger(ActiveMQService.name);
+export class AMQPDemoService implements OnModuleInit {
+  private readonly logger = new Logger(AMQPDemoService.name);
 
   private readonly connectionOptions: ConnectionOptions;
 

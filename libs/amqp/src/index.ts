@@ -1,2 +1,4 @@
-export * from './activemq.module';
-export * from './activemq.service';
+export * from './amqp.module';
+export * from './interfaces';
+export * from './services';
+export * from './constants';

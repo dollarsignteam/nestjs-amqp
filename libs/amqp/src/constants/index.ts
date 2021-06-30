@@ -1,1 +1,1 @@
-export * from './activemq.constants';
+export * from './amqp.constants';
