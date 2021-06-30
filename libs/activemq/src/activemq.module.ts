@@ -1,15 +1,26 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
+import { Logger } from '@dollarsign/logger';
+import { DynamicModule, Global, Inject, Module, Provider } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 
 import { ActiveMQService } from './activemq.service';
 import { ACTIVEMQ_MODULE_OPTIONS } from './constants';
 import { ActiveMQModuleAsyncOptions, ActiveMQModuleOptions } from './interfaces';
 import { getConnectionToken } from './utils';
 
+@Global()
 @Module({
   providers: [ActiveMQService],
   exports: [ActiveMQService],
 })
 export class ActiveMQModule {
+  private readonly logger = new Logger('ActiveMQModule');
+
+  constructor(
+    @Inject(ACTIVEMQ_MODULE_OPTIONS)
+    private readonly options: ActiveMQModuleOptions,
+    private readonly moduleRef: ModuleRef,
+  ) {}
+
   /**
    * @param options - module options
    * @returns dynamic module

@@ -1,30 +1,30 @@
 import { ActiveMQModuleOptions } from '../../interfaces';
 import { getConnectionToken } from '../get-connection-token';
 describe('getConnectionToken', () => {
-  it('should return `defaultConnection`', () => {
+  it('should return `DEFAULT_CONNECTION`', () => {
     const result = getConnectionToken();
-    expect(result).toBe('defaultConnection');
+    expect(result).toBe('DEFAULT_CONNECTION');
   });
 
-  it('should return `defaultConnection` when input is empty string', () => {
+  it('should return `DEFAULT_CONNECTION` when input is empty string', () => {
     const result = getConnectionToken('');
-    expect(result).toBe('defaultConnection');
+    expect(result).toBe('DEFAULT_CONNECTION');
   });
 
-  it('should return `testConnection` when input is `test`', () => {
+  it('should return `TEST_CONNECTION` when input is `test`', () => {
     const result = getConnectionToken('test');
-    expect(result).toBe('testConnection');
+    expect(result).toBe('TEST_CONNECTION');
   });
 
-  it('should return `defaultConnection` when input is empty option', () => {
+  it('should return `DEFAULT_CONNECTION` when input is empty option', () => {
     const option: ActiveMQModuleOptions = {};
     const result = getConnectionToken(option);
-    expect(result).toBe('defaultConnection');
+    expect(result).toBe('DEFAULT_CONNECTION');
   });
 
-  it('should return `demoConnection` when option name is `demo`', () => {
+  it('should return `DEMO_CONNECTION` when option name is `demo`', () => {
     const option: ActiveMQModuleOptions = { name: 'demo' };
     const result = getConnectionToken(option);
-    expect(result).toBe('demoConnection');
+    expect(result).toBe('DEMO_CONNECTION');
   });
 });
