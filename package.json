@@ -1,7 +1,7 @@
 {
-  "name": "@dollarsign/nestjs-activemq",
+  "name": "@dollarsign/nestjs-amqp",
   "version": "0.0.0-development",
-  "description": "Nestjs ActiveMQ",
+  "description": "Nestjs AMQP",
   "author": "Dollarsign",
   "license": "MIT",
   "readmeFilename": "README.md",
@@ -12,17 +12,17 @@
   ],
   "keywords": [
     "nestjs",
-    "activemq",
-    "nestjs-activemq"
+    "amqp",
+    "nestjs-amqp"
   ],
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/dollarsignteam/nestjs-activemq.git"
+    "url": "https://github.com/dollarsignteam/nestjs-amqp.git"
   },
-  "bugs": "https://github.com/dollarsignteam/nestjs-activemq/issues",
+  "bugs": "https://github.com/dollarsignteam/nestjs-amqp/issues",
   "scripts": {
     "prebuild": "rimraf dist/*",
     "build": "nest build",
@@ -116,8 +116,8 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
-      "@dollarsign/nestjs-activemq/(.*)": "<rootDir>/libs/activemq/src/$1",
-      "@dollarsign/nestjs-activemq": "<rootDir>/libs/activemq/src"
+      "@dollarsign/nestjs-amqp/(.*)": "<rootDir>/libs/amqp/src/$1",
+      "@dollarsign/nestjs-amqp": "<rootDir>/libs/amqp/src"
     }
   }
 }

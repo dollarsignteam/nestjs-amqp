@@ -1,4 +1,4 @@
-# NestJS ActiveMQ
+# NestJS AMQP 1.0
 
 WIP (Work In Progress)
 
@@ -7,13 +7,13 @@ WIP (Work In Progress)
 ### Yarn
 
 ```bash
-yarn add @dollarsign/nestjs-activemq
+yarn add @dollarsign/nestjs-amqp
 ```
 
 ### NPM
 
 ```bash
-npm install --save @dollarsign/nestjs-activemq
+npm install --save @dollarsign/nestjs-amqp
 ```
 
 ## Contributing

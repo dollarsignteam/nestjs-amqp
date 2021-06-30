@@ -1,4 +1,4 @@
-import { ActiveMQModule } from '@dollarsign/nestjs-activemq';
+import { ActiveMQModule } from '@dollarsign/nestjs-amqp';
 import { Module } from '@nestjs/common';
 
 import { AppController } from './app.controller';

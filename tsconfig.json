@@ -13,11 +13,11 @@
     "baseUrl": "./",
     "incremental": true,
     "paths": {
-      "@dollarsign/nestjs-activemq": [
-        "libs/activemq/src"
+      "@dollarsign/nestjs-amqp": [
+        "libs/amqp/src"
       ],
-      "@dollarsign/nestjs-activemq/*": [
-        "libs/activemq/src/*"
+      "@dollarsign/nestjs-amqp/*": [
+        "libs/amqp/src/*"
       ]
     }
   }

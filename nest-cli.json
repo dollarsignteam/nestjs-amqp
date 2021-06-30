@@ -2,13 +2,13 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "projects": {
-    "activemq": {
+    "amqp": {
       "type": "library",
-      "root": "libs/activemq",
+      "root": "libs/amqp",
       "entryFile": "index",
-      "sourceRoot": "libs/activemq/src",
+      "sourceRoot": "libs/amqp/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/activemq/tsconfig.lib.json",
+        "tsConfigPath": "libs/amqp/tsconfig.lib.json",
         "webpack": false
       }
     }
