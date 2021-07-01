@@ -19,6 +19,6 @@ import { AppService } from './app.service';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AMQPDemoService],
+  providers: [AppService],
 })
 export class AppModule {}
