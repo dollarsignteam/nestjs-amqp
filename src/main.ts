@@ -3,13 +3,10 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
 
-const logger = new Logger('NestApplication');
+const logger = new Logger({ name: 'NestApplication', displayFilePath: false, displayFunctionName: false });
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, {
-    logger,
-  });
-
+  const app = await NestFactory.create(AppModule, { logger });
   const port = process.env.APP_PORT || 3000;
   await app.listen(port);
 }
@@ -17,6 +14,6 @@ async function bootstrap(): Promise<void> {
 (async (): Promise<void> => {
   await bootstrap();
 })().catch((error: Error) => {
-  logger.error(`Nest application error: ${error.message}`);
+  logger.error(error);
   process.exit(1);
 });

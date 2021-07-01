@@ -5,7 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
-  imports: [AMQPModule],
+  imports: [AMQPModule.forRoot()],
   controllers: [AppController],
   providers: [AppService],
 })
