@@ -1,4 +1,3 @@
-import { Logger } from '@dollarsign/logger';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import {
   AwaitableSender,
@@ -15,9 +14,11 @@ import {
   Session,
 } from 'rhea-promise';
 
+import { getLogger } from '../utils/get-logger';
+
 @Injectable()
 export class AMQPDemoService implements OnModuleInit {
-  private readonly logger = new Logger(AMQPDemoService.name);
+  private readonly logger = getLogger(AMQPDemoService.name);
 
   private readonly connectionOptions: ConnectionOptions;
 
@@ -70,16 +71,16 @@ export class AMQPDemoService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     this.connection = await this.createConnection(this.connectionOptions);
     this.logger.info(`connection is open: ${this.connection.isOpen()}`);
-    // const sessionProducer = await this.connection.createSession();
-    // const sessionConsumer = await this.connection.createSession();
-    // await this.receiver(sessionConsumer, 'receiver-1');
-    // await this.receiver(sessionConsumer, 'receiver-2');
-    // await this.receiver(sessionConsumer, 'receiver-3');
-    // await this.receiver(sessionConsumer, 'receiver-4');
-    // await this.receiver(sessionConsumer, 'receiver-5');
-    // setTimeout(async () => {
-    //   await this.sender(sessionProducer, 'sender-1');
-    // }, 2000);
+    const sessionProducer = await this.connection.createSession();
+    const sessionConsumer = await this.connection.createSession();
+    await this.receiver(sessionConsumer, 'receiver-1');
+    await this.receiver(sessionConsumer, 'receiver-2');
+    await this.receiver(sessionConsumer, 'receiver-3');
+    await this.receiver(sessionConsumer, 'receiver-4');
+    await this.receiver(sessionConsumer, 'receiver-5');
+    setTimeout(async () => {
+      await this.sender(sessionProducer, 'sender-1');
+    }, 2000);
   }
 
   private async receiver(sessionConsumer: Session, name: string): Promise<void> {
@@ -111,7 +112,7 @@ export class AMQPDemoService implements OnModuleInit {
       this.logger.success(`ReceiverEvents: receiverClose`);
     });
     receiver.on(ReceiverEvents.message, ctx => {
-      this.logger.verbose(`${name} ${ctx.message.group_id} ${ctx.message.body}`);
+      // this.logger.info(`${name} ${ctx.message.group_id} ${ctx.message.body}`);
       setTimeout(() => {
         ctx.delivery.accept();
         this.logger.success(`${name} ${ctx.message.group_id} ${ctx.message.body}: Done`);
@@ -133,10 +134,27 @@ export class AMQPDemoService implements OnModuleInit {
       },
     });
     await sender.send(this.getMessage(`${name} 1`, 'A'));
-    await sender.send(this.getMessage(`${name} 2`, 'A'));
-    await sender.send(this.getMessage(`${name} 3`, 'A'));
-    await sender.send(this.getMessage(`${name} 4`, 'B'));
-    await sender.send(this.getMessage(`${name} 5`, 'B'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    await sender.send(this.getMessage(`${name} 1`, 'A'));
+    // await sender.send(this.getMessage(`${name} 1`, 'A'));
+    // await sender.send(this.getMessage(`${name} 2`, 'C'));
+    // await sender.send(this.getMessage(`${name} 3`, 'A'));
+    // await sender.send(this.getMessage(`${name} 4`, 'A'));
+    // await sender.send(this.getMessage(`${name} 5`, 'A'));
+    // await sender.send(this.getMessage(`${name} 6`, 'G'));
+    // await sender.send(this.getMessage(`${name} 7`, 'B'));
+    // await sender.send(this.getMessage(`${name} 8`, 'F'));
+    // await sender.send(this.getMessage(`${name} 9`, 'B'));
     await sender.close();
   }
 
@@ -148,6 +166,7 @@ export class AMQPDemoService implements OnModuleInit {
       body: `${body}`,
       durable: true,
       group_sequence: 1024,
+      correlation_id: 'UNIQUE',
     };
   }
 }

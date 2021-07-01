@@ -27,7 +27,14 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    this.logger.warn('Destroying amqp module');
+    this.logger.info('Destroying amqp module');
+    const connectionToken = getConnectionToken(this.options);
+    const connection = this.moduleRef.get<Connection>(connectionToken);
+    try {
+      await connection?.close();
+    } catch (error) {
+      this.logger.error(error);
+    }
   }
 
   /**

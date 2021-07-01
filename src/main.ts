@@ -8,6 +8,7 @@ const logger = new Logger({ name: 'NestApplication', displayFilePath: false, dis
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { logger });
   const port = process.env.APP_PORT || 3000;
+  app.enableShutdownHooks();
   await app.listen(port);
 }
 
