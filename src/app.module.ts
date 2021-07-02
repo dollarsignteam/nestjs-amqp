@@ -10,9 +10,9 @@ import { AppService } from './app.service';
       name: 'amqp1',
       connectionOptions: {
         hostname: 'localhost',
-        port: 5672,
-        username: 'user',
-        password: 'pass',
+        port: 5671,
+        username: 'admin',
+        password: 'admin',
         reconnect: true,
       },
     }),
@@ -23,8 +23,8 @@ import { AppService } from './app.service';
           connectionOptions: {
             hostname: 'localhost',
             port: 5672,
-            username: 'user',
-            password: 'pass',
+            username: 'admin',
+            password: 'admin',
             reconnect: true,
           },
         };

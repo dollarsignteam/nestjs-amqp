@@ -121,3 +121,4 @@ dist
 tsconfig.*.json
 !tsconfig.build.json
 .DS_*
+/activemq

@@ -1,18 +1,32 @@
-version: '3'
+version: '3.9'
+
+x-app: &default-app
+  image: c18s/activemq
+  network_mode: bridge
+  restart: always
+  environment:
+    ACTIVEMQ_USER: admin
+    ACTIVEMQ_PASSWORD: admin
+  logging:
+    driver: 'json-file'
+    options:
+      max-size: '100k'
+      max-file: '1'
+
 services:
-  activemq:
-    container_name: activemq
-    image: rmohr/activemq
+  activemq-classic1:
+    <<: *default-app
+    container_name: activemq-classic1
     ports:
-      - 61616:61616
-      - 61613:61613
-      - 61614:61614
-      - 5445:5445
-      - 5672:5672
-      - 1883:1883
       - 8161:8161
+      - 5671:5672
     volumes:
-      - ./dist/data:/opt/activemq/data
-    # environment:
-    #   ARTEMIS_USER: user
-    #   ARTEMIS_PASSWORD: pass
+      - './activemq/data1:/opt/activemq/data'
+  activemq-classic2:
+    <<: *default-app
+    container_name: activemq-classic2
+    ports:
+      - 8162:8161
+      - 5672:5672
+    volumes:
+      - './activemq/data2:/opt/activemq/data'
