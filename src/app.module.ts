@@ -22,7 +22,7 @@ import { AppService } from './app.service';
         return {
           connectionOptions: {
             hostname: 'localhost',
-            port: 5671,
+            port: 5672,
             username: 'admin',
             password: 'admin',
             reconnect: true,

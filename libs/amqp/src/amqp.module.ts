@@ -13,7 +13,7 @@ import { getLogger } from './utils/get-logger';
   providers: [AMQPService],
   exports: [AMQPService],
 })
-export class AMQPModule implements OnModuleInit, OnModuleDestroy {
+export class AMQPModule implements OnModuleDestroy {
   private readonly logger = getLogger(AMQPModule.name);
 
   constructor(
@@ -22,15 +22,10 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
     private readonly moduleRef: ModuleRef,
   ) {}
 
-  async onModuleInit(): Promise<void> {
-    this.logger.info('Module initialized');
-  }
-
   async onModuleDestroy(): Promise<void> {
     const connectionToken = getConnectionToken(this.options);
     try {
       const connection = this.moduleRef.get<Connection>(connectionToken);
-      this.logger.warn(`Connection closing: ${connectionToken}`);
       await connection?.close();
     } catch (error) {
       const { message } = error as Error;

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Connection, ConnectionEvents, EventContext } from 'rhea-promise';
+import { hostname } from 'os';
+import { Connection, ConnectionEvents, Container, EventContext } from 'rhea-promise';
 
 import { AMQPModuleOptions } from '../interfaces';
 import { getConnectionToken, getLogger, parseURL } from '../utils';
@@ -15,7 +16,10 @@ export class AMQPService {
       throw new Error(`Invalid connection options: ${connectionToken}`);
     }
     const { connectionUri, connectionOptions } = options;
-    const connection = new Connection({
+    const container = new Container({
+      id: `${connectionToken}:${hostname()}:${new Date().getTime()}`.toLowerCase(),
+    });
+    const connection = container.createConnection({
       ...(!!connectionUri ? parseURL(connectionUri) : {}),
       ...connectionOptions,
     });
@@ -33,11 +37,11 @@ export class AMQPService {
       this.logger.warn(...error);
     });
     connection.on(ConnectionEvents.connectionClose, (context: EventContext) => {
-      const error = [`Connection closed: ${connectionToken}`];
+      const error = `Connection closed: ${connectionToken}`;
       if (context?.error) {
-        this.logger.error(...error);
+        this.logger.error(error);
       } else {
-        this.logger.warn(...error);
+        this.logger.warn(error);
       }
     });
     try {
