@@ -118,7 +118,7 @@ dist
 .pnp.*
 
 # custom
-tsconfig.*.json
+/activemq
+/tsconfig.*.json
 !tsconfig.build.json
 .DS_*
-/activemq
