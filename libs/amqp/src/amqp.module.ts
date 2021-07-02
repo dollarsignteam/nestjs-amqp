@@ -27,11 +27,10 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    this.logger.warn('Module destroying');
     const connectionToken = getConnectionToken(this.options);
     try {
       const connection = this.moduleRef.get<Connection>(connectionToken);
-      this.logger.info(`Connection closing: ${connectionToken}`);
+      this.logger.warn(`Connection closing: ${connectionToken}`);
       await connection?.close();
     } catch (error) {
       const { message } = error as Error;
@@ -85,7 +84,6 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
     return {
       provide: getConnectionToken(options),
       useFactory: async (amqpModuleOptions: AMQPModuleOptions): Promise<Connection> => {
-        console.log({ amqpModuleOptions, options });
         if (options.name) {
           return await this.createConnectionFactory({
             ...amqpModuleOptions,
@@ -143,15 +141,26 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
     if (options.useFactory) {
       return {
         provide: AMQP_MODULE_OPTIONS,
-        useFactory: options.useFactory,
+        useFactory: async (...args): Promise<AMQPModuleOptions> => {
+          const amqpModuleOptions = await options.useFactory(...args);
+          return {
+            ...amqpModuleOptions,
+            name: options.name,
+          };
+        },
         inject: options.inject || [],
       };
     }
     const inject = [(options.useClass || options.useExisting) as Type<AMQPModuleOptionsFactory>];
     return {
       provide: AMQP_MODULE_OPTIONS,
-      useFactory: async (optionsFactory: AMQPModuleOptionsFactory): Promise<AMQPModuleOptions> =>
-        await optionsFactory.createAMQPModuleOptions(options.name),
+      useFactory: async (optionsFactory: AMQPModuleOptionsFactory): Promise<AMQPModuleOptions> => {
+        const amqpModuleOptions = await optionsFactory.createAMQPModuleOptions();
+        return {
+          ...amqpModuleOptions,
+          name: options.name,
+        };
+      },
       inject,
     };
   }

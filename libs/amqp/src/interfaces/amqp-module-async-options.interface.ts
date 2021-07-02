@@ -3,7 +3,7 @@ import { FactoryProvider, ModuleMetadata, Type } from '@nestjs/common';
 import { AMQPModuleOptions } from './amqp-module-options.interface';
 
 export interface AMQPModuleOptionsFactory {
-  createAMQPModuleOptions(connectionName?: string): Promise<AMQPModuleOptions> | AMQPModuleOptions;
+  createAMQPModuleOptions(): Promise<AMQPModuleOptions> | AMQPModuleOptions;
 }
 
 export interface AMQPModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'>, Pick<FactoryProvider, 'inject'> {
