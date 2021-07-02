@@ -1,10 +1,8 @@
 import { DEFAULT_CONNECTION_NAME } from '../constants';
 import { AMQPModuleOptions } from '../interfaces';
 
-const defaultConnection = `${DEFAULT_CONNECTION_NAME}_CONNECTION`;
-
 function getConnectionName(name: string): string {
-  return name ? `${name}_CONNECTION`.toUpperCase() : defaultConnection;
+  return name ? `${name}:connection`.toLowerCase().replace(/\s+/g, '-') : DEFAULT_CONNECTION_NAME;
 }
 
 export function getConnectionToken(connection?: AMQPModuleOptions | string): string {
