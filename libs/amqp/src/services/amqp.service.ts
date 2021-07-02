@@ -19,24 +19,32 @@ export class AMQPService {
       ...(!!connectionUri ? parseURL(connectionUri) : {}),
       ...connectionOptions,
     });
-    connection.on(ConnectionEvents.connectionOpen, (ctx: EventContext) => {
-      this.logger.info(`Connection opened: ${connectionToken}`, ctx.connection.id);
+    connection.on(ConnectionEvents.connectionOpen, (context: EventContext) => {
+      this.logger.info(`Connection opened: ${connectionToken}`, context.connection.id);
     });
-    connection.on(ConnectionEvents.connectionError, (ctx: EventContext) => {
+    connection.on(ConnectionEvents.connectionError, (context: EventContext) => {
       const error = [`Connection error: ${connectionToken}`];
-      ctx.error?.message && error.push(ctx.error.message);
+      context?.error?.message && error.push(context.error.message);
       this.logger.error(...error);
     });
-    connection.on(ConnectionEvents.disconnected, (ctx: EventContext) => {
+    connection.on(ConnectionEvents.disconnected, (context: EventContext) => {
       const error = [`Connection closed by peer: ${connectionToken}`];
-      ctx.error?.message && error.push(ctx.error.message);
+      context?.error?.message && error.push(context.error.message);
       this.logger.warn(...error);
+    });
+    connection.on(ConnectionEvents.connectionClose, (context: EventContext) => {
+      const error = [`Connection closed: ${connectionToken}`];
+      if (context?.error) {
+        this.logger.error(...error);
+      } else {
+        this.logger.warn(...error);
+      }
     });
     try {
       await connection.open();
     } catch (err) {
       const { message } = err as Error;
-      this.logger.error(`Connection error: ${connectionToken}`, message);
+      this.logger.error(`Connection open failed: ${connectionToken}`, message);
     }
     return connection;
   }
