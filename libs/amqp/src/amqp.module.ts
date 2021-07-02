@@ -1,4 +1,4 @@
-import { DynamicModule, Global, Inject, Module, OnModuleDestroy, OnModuleInit, Provider, Type } from '@nestjs/common';
+import { DynamicModule, Global, Inject, Module, OnModuleDestroy, Provider, Type } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { Connection } from 'rhea-promise';
 
