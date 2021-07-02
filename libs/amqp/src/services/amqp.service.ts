@@ -9,10 +9,10 @@ export class AMQPService {
   private static readonly logger = getLogger(AMQPService.name);
 
   public static async createConnection(options: AMQPModuleOptions): Promise<Connection> {
-    const token = getConnectionToken(options);
-    this.logger.info(`Connection creating: ${token}`);
+    const connectionToken = getConnectionToken(options);
+    this.logger.info(`Connection creating: ${connectionToken}`);
     if (!options) {
-      throw new Error(`Invalid connection options: ${token}`);
+      throw new Error(`Invalid connection options: ${connectionToken}`);
     }
     const { connectionUri, connectionOptions } = options;
     const connection = new Connection({
@@ -20,15 +20,15 @@ export class AMQPService {
       ...connectionOptions,
     });
     connection.on(ConnectionEvents.connectionOpen, (ctx: EventContext) => {
-      this.logger.info(`Connection opened: ${token}`, ctx.connection.id);
+      this.logger.info(`Connection opened: ${connectionToken}`, ctx.connection.id);
     });
     connection.on(ConnectionEvents.connectionError, (ctx: EventContext) => {
-      const error = [`Connection error: ${token}`];
+      const error = [`Connection error: ${connectionToken}`];
       ctx.error?.message && error.push(ctx.error.message);
       this.logger.error(...error);
     });
     connection.on(ConnectionEvents.disconnected, (ctx: EventContext) => {
-      const error = [`Connection closed by peer: ${token}`];
+      const error = [`Connection closed by peer: ${connectionToken}`];
       ctx.error?.message && error.push(ctx.error.message);
       this.logger.warn(...error);
     });
@@ -36,7 +36,7 @@ export class AMQPService {
       await connection.open();
     } catch (err) {
       const { message } = err as Error;
-      this.logger.error(`Connection error: ${token}`, message);
+      this.logger.error(`Connection error: ${connectionToken}`, message);
     }
     return connection;
   }

@@ -27,15 +27,15 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    this.logger.info('Module destroying');
-    const token = getConnectionToken(this.options);
-    const connection = this.moduleRef.get<Connection>(token);
+    this.logger.warn('Module destroying');
+    const connectionToken = getConnectionToken(this.options);
     try {
-      this.logger.info(`Connection closing: ${token}`);
+      const connection = this.moduleRef.get<Connection>(connectionToken);
+      this.logger.info(`Connection closing: ${connectionToken}`);
       await connection?.close();
     } catch (error) {
       const { message } = error as Error;
-      this.logger.error(`Connection error: ${token}`, message);
+      this.logger.error(`Connection error: ${connectionToken}`, message);
     }
   }
 
@@ -67,20 +67,32 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
+   * @param options - module options
+   * @returns connection provider
+   */
+  private static createConnectionProvider(options: AMQPModuleOptions): Provider {
+    return {
+      provide: getConnectionToken(options),
+      useFactory: async (): Promise<Connection> => await this.createConnectionFactory(options),
+    };
+  }
+
+  /**
    * @param options - module async options
    * @returns `Provider`
    */
   private static createAsyncConnectionProvider(options: AMQPModuleAsyncOptions): Provider {
     return {
       provide: getConnectionToken(options),
-      useFactory: async (amqpModuleOptions: AMQPModuleOptions): Promise<Provider> => {
+      useFactory: async (amqpModuleOptions: AMQPModuleOptions): Promise<Connection> => {
+        console.log({ amqpModuleOptions, options });
         if (options.name) {
-          return this.createConnectionProvider({
+          return await this.createConnectionFactory({
             ...amqpModuleOptions,
             name: options.name,
           });
         }
-        return this.createConnectionProvider(amqpModuleOptions);
+        return await this.createConnectionFactory(amqpModuleOptions);
       },
       inject: [AMQP_MODULE_OPTIONS],
     };
@@ -88,13 +100,10 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
 
   /**
    * @param options - module options
-   * @returns connection provider
+   * @returns AMQP connection
    */
-  private static createConnectionProvider(options: AMQPModuleOptions): Provider {
-    return {
-      provide: getConnectionToken(options),
-      useFactory: async (): Promise<Connection> => await AMQPService.createConnection(options),
-    };
+  private static async createConnectionFactory(options: AMQPModuleOptions): Promise<Connection> {
+    return AMQPService.createConnection(options);
   }
 
   /**
