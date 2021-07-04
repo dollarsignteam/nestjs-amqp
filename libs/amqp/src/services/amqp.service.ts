@@ -9,6 +9,10 @@ import { getConnectionToken, getLogger, parseURL } from '../utils';
 export class AMQPService {
   private static readonly logger = getLogger(AMQPService.name);
 
+  /**
+   * @param options - module options
+   * @returns AMQP connection
+   */
   public static async createConnection(options: AMQPModuleOptions): Promise<Connection> {
     const connectionToken = getConnectionToken(options);
     this.logger.info(`Connection creating: ${connectionToken}`);
