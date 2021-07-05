@@ -76,7 +76,7 @@ export class AMQPService {
       AMQPService.logger.warn(`Sender closed: ${context?.sender?.name}`);
     });
     sender.on(SenderEvents.senderError, (context: EventContext) => {
-      AMQPService.logger.error(`Sender errored: ${context?.sender?.name}`, {
+      AMQPService.logger.error(`Sender error: ${context?.sender?.name}`, {
         error: context?.sender?.error,
       });
     });
