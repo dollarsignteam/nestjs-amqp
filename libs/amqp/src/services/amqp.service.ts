@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { hostname } from 'os';
-import { Connection, ConnectionEvents, Container, EventContext } from 'rhea-promise';
+import { AwaitableSender, Connection, ConnectionEvents, Container, CreateAwaitableSenderOptions, EventContext, SenderEvents } from 'rhea-promise';
 
 import { AMQPModuleOptions } from '../interfaces';
 import { getConnectionToken, getLogger, parseURL } from '../utils';
@@ -9,9 +10,11 @@ import { getConnectionToken, getLogger, parseURL } from '../utils';
 export class AMQPService {
   private static readonly logger = getLogger(AMQPService.name);
 
+  constructor(private readonly moduleRef: ModuleRef) {}
+
   /**
    * @param options - module options
-   * @returns AMQP connection
+   * @returns connection
    */
   public static async createConnection(options: AMQPModuleOptions): Promise<Connection> {
     const connectionToken = getConnectionToken(options);
@@ -55,5 +58,32 @@ export class AMQPService {
       this.logger.error(`Connection open failed: ${connectionToken}`, message);
     }
     return connection;
+  }
+
+  /**
+   * @param options - sender options
+   * @param connectionName - connection name
+   * @returns sender
+   */
+  public async createSender(options: CreateAwaitableSenderOptions, connectionName?: string): Promise<AwaitableSender> {
+    const connectionToken = getConnectionToken(connectionName);
+    const connection = this.moduleRef.get<Connection>(connectionToken);
+    const sender = await connection.createAwaitableSender(options);
+    sender.on(SenderEvents.senderOpen, (context: EventContext) => {
+      AMQPService.logger.info(`Sender opened: ${connectionToken}`, context.sender.address);
+    });
+    sender.on(SenderEvents.senderClose, (context: EventContext) => {
+      AMQPService.logger.warn(`Sender closed: ${connectionToken}`, context.sender.address);
+    });
+    sender.on(SenderEvents.senderError, (context: EventContext) => {
+      AMQPService.logger.error(`Sender errored: ${connectionToken}`, {
+        name: context.sender.address,
+        error: context.sender.error,
+      });
+    });
+    sender.on(SenderEvents.senderDraining, (context: EventContext) => {
+      AMQPService.logger.log(`Sender requested to drain its credits by remote peer: ${connectionToken}`, context.sender.address);
+    });
+    return sender;
   }
 }
