@@ -9,4 +9,8 @@ export class AppService {
     await this.producer.send('demo', { foo: 'bar' }, { connectionName: 'amqp1' });
     return 'Hello World!';
   }
+
+  message(): void {
+    //
+  }
 }

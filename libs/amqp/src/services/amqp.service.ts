@@ -67,7 +67,7 @@ export class AMQPService {
    */
   public async createSender(options: CreateAwaitableSenderOptions, connectionName?: string): Promise<AwaitableSender> {
     const connectionToken = getConnectionToken(connectionName);
-    const connection = this.moduleRef.get<Connection>(connectionToken);
+    const connection = this.moduleRef.get<Connection>(connectionToken, { strict: false });
     const sender = await connection.createAwaitableSender(options);
     sender.on(SenderEvents.senderOpen, (context: EventContext) => {
       AMQPService.logger.info(`Sender opened: ${context?.sender?.name}`);

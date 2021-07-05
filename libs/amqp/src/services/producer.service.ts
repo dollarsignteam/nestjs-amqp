@@ -23,12 +23,12 @@ export class ProducerService {
    */
   public async send<T>(target: string, message: T, options?: SendOptions): Promise<boolean> {
     const { connectionName } = options || {};
-    const sender: AwaitableSender = await this.getSender(target, connectionName);
-    const messageToSend: Message = {
-      body: jsonStringify(message),
-      ...options,
-    };
     try {
+      const sender: AwaitableSender = await this.getSender(target, connectionName);
+      const messageToSend: Message = {
+        body: jsonStringify(message),
+        ...options,
+      };
       const delivery = await sender.send(messageToSend);
       if (delivery.settled) {
         return true;
