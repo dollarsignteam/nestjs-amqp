@@ -11,7 +11,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
-    "incremental": true,
+    "incremental": false,
     "paths": {
       "@dollarsign/nestjs-amqp": [
         "lib"
