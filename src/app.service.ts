@@ -5,12 +5,12 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   constructor(private readonly producer: ProducerService) {}
 
-  async getHello(): Promise<string> {
-    await this.producer.send('demo', { foo: 'bar' }, { connectionName: 'amqp1' });
+  getHello(): string {
     return 'Hello World!';
   }
 
-  message(): void {
-    //
+  async sendMessage(): Promise<string> {
+    await this.producer.send('demo', { foo: 'bar' }, { connectionName: 'amqp1' });
+    return 'Hello World!';
   }
 }

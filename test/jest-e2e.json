@@ -7,7 +7,7 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "@dollarsign/nestjs-amqp/(.*)": "<rootDir>/../libs/amqp/src/$1",
-    "@dollarsign/nestjs-amqp": "<rootDir>/../libs/amqp/src"
+    "@dollarsign/nestjs-amqp/(.*)": "<rootDir>/../lib/$1",
+    "@dollarsign/nestjs-amqp": "<rootDir>/../lib"
   }
 }

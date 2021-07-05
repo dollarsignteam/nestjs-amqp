@@ -14,10 +14,10 @@
     "incremental": true,
     "paths": {
       "@dollarsign/nestjs-amqp": [
-        "libs/amqp/src"
+        "lib"
       ],
       "@dollarsign/nestjs-amqp/*": [
-        "libs/amqp/src/*"
+        "lib/*"
       ]
     }
   }

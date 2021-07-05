@@ -4,11 +4,11 @@
   "projects": {
     "amqp": {
       "type": "library",
-      "root": "libs/amqp",
+      "root": "lib",
       "entryFile": "index",
-      "sourceRoot": "libs/amqp/src",
+      "sourceRoot": "lib",
       "compilerOptions": {
-        "tsConfigPath": "libs/amqp/tsconfig.lib.json",
+        "tsConfigPath": "lib/tsconfig.lib.json",
         "webpack": false
       }
     }

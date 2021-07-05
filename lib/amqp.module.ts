@@ -14,7 +14,6 @@ import { getConnectionToken, getLogger } from './utils';
 })
 export class AMQPModule implements OnModuleDestroy {
   private readonly logger = getLogger(AMQPModule.name);
-  public static producerTokens: string[] = new Array<string>();
 
   constructor(
     @Inject(AMQP_MODULE_OPTIONS)
