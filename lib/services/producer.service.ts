@@ -2,7 +2,7 @@ import { jsonStringify } from '@dollarsign/utils';
 import { Injectable } from '@nestjs/common';
 import { AwaitableSender, CreateAwaitableSenderOptions, Message } from 'rhea-promise';
 
-import { SendOptions } from '../interfaces';
+import { CreateSenderOptions, SendOptions } from '../interfaces';
 import { getLogger, getProducerToken } from '../utils';
 import { AMQPService } from './amqp.service';
 
@@ -51,14 +51,18 @@ export class ProducerService {
       sender = this.senders.get(target);
     } else {
       const producerToken = getProducerToken(connectionName);
-      const options: CreateAwaitableSenderOptions = {
+      const senderOptions: CreateAwaitableSenderOptions = {
         name: producerToken,
         target: {
           address: target,
           capabilities: ['queue'],
         },
       };
-      sender = await this.amqpService.createSender(options, connectionName);
+      const createSenderOptions: CreateSenderOptions = {
+        connectionName,
+        senderOptions,
+      };
+      sender = await this.amqpService.createSender(createSenderOptions);
       this.senders.set(target, sender);
     }
     return sender;

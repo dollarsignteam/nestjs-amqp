@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { hostname } from 'os';
-import { AwaitableSender, Connection, ConnectionEvents, Container, CreateAwaitableSenderOptions, EventContext, SenderEvents } from 'rhea-promise';
+import { AwaitableSender, Connection, ConnectionEvents, Container, EventContext, Receiver, ReceiverEvents, SenderEvents } from 'rhea-promise';
 
-import { AMQPModuleOptions } from '../interfaces';
+import { AMQPModuleOptions, CreateReceiverOptions, CreateSenderOptions } from '../interfaces';
 import { getConnectionToken, getLogger, parseURL } from '../utils';
 
 @Injectable()
@@ -61,14 +61,14 @@ export class AMQPService {
   }
 
   /**
-   * @param options - sender options
-   * @param connectionName - connection name
+   * @param options - create sender options
    * @returns sender
    */
-  public async createSender(options: CreateAwaitableSenderOptions, connectionName?: string): Promise<AwaitableSender> {
+  public async createSender(options: CreateSenderOptions): Promise<AwaitableSender> {
+    const { connectionName, senderOptions } = options;
     const connectionToken = getConnectionToken(connectionName);
     const connection = this.moduleRef.get<Connection>(connectionToken, { strict: false });
-    const sender = await connection.createAwaitableSender(options);
+    const sender = await connection.createAwaitableSender(senderOptions);
     sender.on(SenderEvents.senderOpen, (context: EventContext) => {
       AMQPService.logger.info(`Sender opened: ${context?.sender?.name}`);
     });
@@ -84,5 +84,40 @@ export class AMQPService {
       AMQPService.logger.log(`Sender requested to drain its credits by remote peer: ${context?.sender?.name}`);
     });
     return sender;
+  }
+
+  public async createReceiver(options: CreateReceiverOptions): Promise<Receiver> {
+    const { connectionName, credits, receiverOptions } = options;
+    const connectionToken = getConnectionToken(connectionName);
+    const connection = this.moduleRef.get<Connection>(connectionToken, { strict: false });
+    const receiver: Receiver = await connection.createReceiver(receiverOptions);
+    receiver.addCredit(credits);
+    receiver.on(ReceiverEvents.receiverOpen, (context: EventContext) => {
+      AMQPService.logger.log(`receiver opened: ${JSON.stringify({ source: context?.receiver?.address })}`);
+      const currentCredits = context.receiver.credit;
+      if (currentCredits < credits) {
+        AMQPService.logger.debug('receiver does not have credits, adding credits');
+        context.receiver.addCredit(credits - currentCredits);
+      }
+    });
+    receiver.on(ReceiverEvents.receiverClose, (context: EventContext) => {
+      AMQPService.logger.log(`receiver closed: ${JSON.stringify({ queue: context?.receiver?.address })}`);
+    });
+    receiver.on(ReceiverEvents.receiverDrained, (context: EventContext) => {
+      AMQPService.logger.debug(`remote peer for receiver drained: ${JSON.stringify({ queue: context?.receiver?.address })}`);
+    });
+    receiver.on(ReceiverEvents.receiverFlow, (context: EventContext) => {
+      AMQPService.logger.debug(`flow event received for receiver: ${JSON.stringify({ queue: context?.receiver?.address })}`);
+    });
+    receiver.on(ReceiverEvents.settled, (context: EventContext) => {
+      AMQPService.logger.debug(`message has been settled by remote: ${JSON.stringify({ queue: context?.receiver?.address })}`);
+    });
+    AMQPService.logger.log(
+      `receiver created: ${JSON.stringify({
+        credits: receiver?.credit,
+        source: receiver?.source,
+      })}`,
+    );
+    return receiver;
   }
 }
