@@ -35,8 +35,7 @@ export class ProducerService {
       }
       this.logger.warn(`Send message failed: ${target}`, message);
     } catch (error) {
-      const { message: errorMessage } = error as Error;
-      this.logger.error(`Send message failed: ${target}`, message, errorMessage);
+      this.logger.error(`Send message failed: ${target} ${(error as Error)?.message}`, message);
     }
     return false;
   }

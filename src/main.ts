@@ -3,7 +3,11 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
 
-const logger = new Logger({ name: 'NestApplication', displayFilePath: false, displayFunctionName: false });
+const logger = new Logger({
+  name: 'NestApplication',
+  displayFilePath: false,
+  displayFunctionName: false,
+});
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { logger });
