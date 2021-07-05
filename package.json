@@ -26,12 +26,12 @@
   "scripts": {
     "prebuild": "rimraf dist/*",
     "build": "nest build",
-    "format": "prettier --write src/**/*.ts test/**/*.ts libs/**/*.ts",
+    "format": "prettier --write src/**/*.ts test/**/*.ts lib/**/*.ts",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
-    "lint": "eslint --ignore-path .gitignore --ext .ts {src,libs,test}/**/*.ts --fix",
+    "lint": "eslint --ignore-path .gitignore --ext .ts {src,lib,test}/**/*.ts --fix",
     "type-check": "tsc-files --noEmit",
     "fix": "tsc --noEmit && yarn format && yarn lint",
     "test": "jest --forceExit --detectOpenHandles",
@@ -114,11 +114,11 @@
     "testEnvironment": "node",
     "roots": [
       "<rootDir>/src/",
-      "<rootDir>/libs/"
+      "<rootDir>/lib/"
     ],
     "moduleNameMapper": {
-      "@dollarsign/nestjs-amqp/(.*)": "<rootDir>/libs/amqp/src/$1",
-      "@dollarsign/nestjs-amqp": "<rootDir>/libs/amqp/src"
+      "@dollarsign/nestjs-amqp/(.*)": "<rootDir>/lib/$1",
+      "@dollarsign/nestjs-amqp": "<rootDir>/lib"
     }
   }
 }
