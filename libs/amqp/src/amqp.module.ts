@@ -4,9 +4,8 @@ import { Connection } from 'rhea-promise';
 
 import { AMQP_MODULE_OPTIONS } from './constants';
 import { AMQPModuleAsyncOptions, AMQPModuleOptions, AMQPModuleOptionsFactory } from './interfaces';
-import { AMQPService } from './services';
-import { getConnectionToken } from './utils';
-import { getLogger } from './utils/get-logger';
+import { AMQPService, ProducerService } from './services';
+import { getConnectionToken, getLogger } from './utils';
 
 @Global()
 @Module({
@@ -15,6 +14,7 @@ import { getLogger } from './utils/get-logger';
 })
 export class AMQPModule implements OnModuleDestroy {
   private readonly logger = getLogger(AMQPModule.name);
+  public static producerTokens: string[] = new Array<string>();
 
   constructor(
     @Inject(AMQP_MODULE_OPTIONS)
@@ -42,8 +42,8 @@ export class AMQPModule implements OnModuleDestroy {
     const moduleOptionsProvider = this.createModuleOptionsProvider(options);
     return {
       module: AMQPModule,
-      providers: [moduleOptionsProvider, connectionProvider],
-      exports: [connectionProvider],
+      providers: [connectionProvider, moduleOptionsProvider, ProducerService],
+      exports: [connectionProvider, ProducerService],
     };
   }
 
@@ -56,7 +56,8 @@ export class AMQPModule implements OnModuleDestroy {
     const asyncProviders = this.createAsyncProviders(options);
     return {
       module: AMQPModule,
-      providers: [...asyncProviders, connectionProvider],
+      providers: [connectionProvider, ...asyncProviders, ProducerService],
+      exports: [connectionProvider, ProducerService],
     };
   }
 

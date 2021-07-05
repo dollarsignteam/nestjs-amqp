@@ -1,3 +1,5 @@
 import { Message } from 'rhea-promise';
 
-export type SendOptions = Omit<Message, 'body'>;
+export interface SendOptions extends Omit<Message, 'body'> {
+  connectionName?: string;
+}

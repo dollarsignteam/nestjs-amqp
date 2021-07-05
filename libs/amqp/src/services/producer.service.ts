@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AwaitableSender, CreateAwaitableSenderOptions, Message } from 'rhea-promise';
 
 import { SendOptions } from '../interfaces';
-import { getLogger } from '../utils';
+import { getLogger, getProducerToken } from '../utils';
 import { AMQPService } from './amqp.service';
 
 @Injectable()
@@ -22,34 +22,44 @@ export class ProducerService {
    * @returns state of send
    */
   public async send<T>(target: string, message: T, options?: SendOptions): Promise<boolean> {
-    const sender: AwaitableSender = await this.getSender(target);
+    const { connectionName } = options || {};
+    const sender: AwaitableSender = await this.getSender(target, connectionName);
     const messageToSend: Message = {
       body: jsonStringify(message),
       ...options,
     };
-    const delivery = await sender.send(messageToSend);
-    if (!delivery.sent) {
+    try {
+      const delivery = await sender.send(messageToSend);
+      if (delivery.settled) {
+        return true;
+      }
       this.logger.warn(`Send message failed: ${target}`, message);
+    } catch (error) {
+      const { message: errorMessage } = error as Error;
+      this.logger.error(`Send message failed: ${target}`, message, errorMessage);
     }
-    return delivery.sent;
+    return false;
   }
 
   /**
    * @param target - name of the queue
+   * @param connectionName - connection name
    * @returns sender
    */
-  private async getSender(target: string): Promise<AwaitableSender> {
+  private async getSender(target: string, connectionName: string): Promise<AwaitableSender> {
     let sender: AwaitableSender;
     if (this.senders.has(target)) {
       sender = this.senders.get(target);
     } else {
+      const producerToken = getProducerToken(connectionName);
       const options: CreateAwaitableSenderOptions = {
+        name: producerToken,
         target: {
           address: target,
           capabilities: ['queue'],
         },
       };
-      sender = await this.amqpService.createSender(options, '');
+      sender = await this.amqpService.createSender(options, connectionName);
       this.senders.set(target, sender);
     }
     return sender;

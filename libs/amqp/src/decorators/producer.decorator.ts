@@ -1,7 +1,16 @@
 import { Inject } from '@nestjs/common';
 
+import { AMQPModule } from '../amqp.module';
 import { getProducerToken } from '../utils';
 
-export const Producer = (connectionName?: string): ParameterDecorator => {
-  return Inject(getProducerToken(connectionName));
+/**
+ * @param name - connection name
+ * @returns `ParameterDecorator`
+ */
+export const Producer = (name?: string): ParameterDecorator => {
+  const token = getProducerToken(name);
+  if (!AMQPModule.producerTokens.includes(token)) {
+    AMQPModule.producerTokens.push(token);
+  }
+  return Inject(token);
 };

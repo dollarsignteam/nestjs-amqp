@@ -70,19 +70,18 @@ export class AMQPService {
     const connection = this.moduleRef.get<Connection>(connectionToken);
     const sender = await connection.createAwaitableSender(options);
     sender.on(SenderEvents.senderOpen, (context: EventContext) => {
-      AMQPService.logger.info(`Sender opened: ${connectionToken}`, context.sender.address);
+      AMQPService.logger.info(`Sender opened: ${context?.sender?.name}`);
     });
     sender.on(SenderEvents.senderClose, (context: EventContext) => {
-      AMQPService.logger.warn(`Sender closed: ${connectionToken}`, context.sender.address);
+      AMQPService.logger.warn(`Sender closed: ${context?.sender?.name}`);
     });
     sender.on(SenderEvents.senderError, (context: EventContext) => {
-      AMQPService.logger.error(`Sender errored: ${connectionToken}`, {
-        name: context.sender.address,
-        error: context.sender.error,
+      AMQPService.logger.error(`Sender errored: ${context?.sender?.name}`, {
+        error: context?.sender?.error,
       });
     });
     sender.on(SenderEvents.senderDraining, (context: EventContext) => {
-      AMQPService.logger.log(`Sender requested to drain its credits by remote peer: ${connectionToken}`, context.sender.address);
+      AMQPService.logger.log(`Sender requested to drain its credits by remote peer: ${context?.sender?.name}`);
     });
     return sender;
   }
