@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-jest.mock('@dollarsign/nestjs-amqp');
+jest.mock('@dollarsign/nestjs-amqp/services');
 
 describe('AppController', () => {
   let appController: AppController;
