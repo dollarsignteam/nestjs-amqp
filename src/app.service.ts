@@ -1,8 +1,10 @@
-import { ProducerService } from '@dollarsign/nestjs-amqp';
+import { Logger } from '@dollarsign/logger';
+import { Consumer, MessageControl, ProducerService } from '@dollarsign/nestjs-amqp';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppService {
+  private readonly logger = new Logger(AppService.name);
   constructor(private readonly producer: ProducerService) {}
 
   getHello(): string {
@@ -17,5 +19,11 @@ export class AppService {
   async sendMessage2(): Promise<string> {
     const result = await this.producer.send('demo', { foo: 'bar' }, { connectionName: 'amqp2' });
     return `Send message to amqp2 connection: ${result}`;
+  }
+
+  @Consumer('demo', { connectionName: 'amqp1' })
+  receiveMessage(data: unknown, control: MessageControl): void {
+    this.logger.success(`Received message from amqp1`, data);
+    control.accept();
   }
 }
