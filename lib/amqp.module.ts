@@ -16,6 +16,7 @@ import { getConnectionToken, getLogger } from './utils';
 })
 export class AMQPModule implements OnModuleInit, OnModuleDestroy {
   private readonly logger = getLogger(AMQPModule.name);
+  private readonly connectionToken: string;
 
   constructor(
     @Inject(AMQP_MODULE_OPTIONS)
@@ -23,45 +24,30 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
     private readonly consumerService: ConsumerService,
     private readonly consumerExplorer: ConsumerExplorer,
     private readonly moduleRef: ModuleRef,
-  ) {}
+  ) {
+    this.connectionToken = getConnectionToken(this.options);
+  }
 
   public async onModuleInit(): Promise<void> {
-    this.logger.log('initializing queue module');
-
-    // find everything marked with @Listen
-    const consumers = this.consumerExplorer.explore();
+    const consumers = this.consumerExplorer.explore(this.connectionToken);
     await this.attachConsumers(consumers);
-
-    // AMQPService.eventEmitter.on(AMQP_CONNECTION_RECONNECT, () => {
-    //   this.logger.log('reattaching receivers to connection');
-    //   this.queueService.clearSenderAndReceiverLinks();
-    //   this.attachListeners(consumers)
-    //     .then(() => logger.log('receivers reattached'))
-    //     .catch(error => logger.error('error while reattaching consumers', error));
-    // });
-
-    this.logger.log('queue module initialized');
   }
 
   private async attachConsumers(consumers: Array<ConsumerMetadata>): Promise<void> {
     for (const consumer of consumers) {
-      this.logger.debug(`attaching consumer for @Consumer: ${JSON.stringify(consumer)}`);
-
-      // fetch instance from DI framework
+      this.logger.silly('Attaching @Consumer', consumer);
       const target = this.moduleRef.get(consumer.targetName, { strict: false });
-
       await this.consumerService.consume(consumer.source, consumer.callback.bind(target), consumer.options);
     }
   }
 
   async onModuleDestroy(): Promise<void> {
-    const connectionToken = getConnectionToken(this.options);
     try {
-      const connection = this.moduleRef.get<Connection>(connectionToken);
+      const connection = this.moduleRef.get<Connection>(this.connectionToken);
       await connection?.close();
     } catch (error) {
       const { message } = error as Error;
-      this.logger.error(`Connection error: ${connectionToken}`, message);
+      this.logger.error(`Connection error: ${this.connectionToken}`, message);
     }
   }
 

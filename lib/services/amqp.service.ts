@@ -112,12 +112,7 @@ export class AMQPService {
     receiver.on(ReceiverEvents.settled, (context: EventContext) => {
       AMQPService.logger.debug(`message has been settled by remote: ${JSON.stringify({ queue: context?.receiver?.address })}`);
     });
-    AMQPService.logger.log(
-      `receiver created: ${JSON.stringify({
-        credits: receiver?.credit,
-        source: receiver?.source,
-      })}`,
-    );
+    AMQPService.logger.silly('Receiver created', { credits: receiver?.credit, source: receiver?.source, name: receiver?.name });
     return receiver;
   }
 }

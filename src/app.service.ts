@@ -36,15 +36,16 @@ export class AppService {
     return `Send message to ${name} connection: ${result}`;
   }
 
-  @Consumer('demo', { connectionName: 'amqp1' })
+  @Consumer('demo', { connectionName: 'amqp1', parallelMessageProcessing: 1, concurrency: 2 })
   async receiveMessage1(data: unknown, control: MessageControl): Promise<void> {
     const { message_id } = control.message;
     this.logger.info(`Received message from amqp1 id: ${message_id}`, data);
     await sleep(5000);
-    control.accept();
+    throw new Error('CUSTOM ERROR');
+    // control.accept();
   }
 
-  @Consumer('demo', { connectionName: 'amqp2' })
+  @Consumer('demo', { connectionName: 'amqp2', parallelMessageProcessing: 1, concurrency: 2 })
   async receiveMessage2(data: unknown, control: MessageControl): Promise<void> {
     const { message_id } = control.message;
     this.logger.info(`Received message from amqp2 id: ${message_id}`, data);

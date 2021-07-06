@@ -10,11 +10,9 @@ import { ConsumerMetadata } from '../domain';
 export class ConsumerExplorer {
   constructor(private readonly modulesContainer: ModulesContainer, private readonly metadataScanner: MetadataScanner) {}
 
-  public explore(): Array<ConsumerMetadata> {
-    // find all the providers
+  public explore(connectionToken: string): Array<ConsumerMetadata> {
     const modules = [...this.modulesContainer.values()];
     const providersMap = modules.filter(({ providers }) => providers.size > 0).map(({ providers }) => providers);
-
     const instanceWrappers: Array<InstanceWrapper<InjectableInterface>> = [];
     providersMap.forEach(map => {
       const mapKeys = [...map.keys()];
@@ -24,17 +22,14 @@ export class ConsumerExplorer {
         }),
       );
     });
-
-    // find the handlers marked with @Consumer
     return instanceWrappers
       .filter(({ instance }) => {
         return instance && instance !== null;
       })
       .map(({ instance }) => {
         const instancePrototype = Object.getPrototypeOf(instance);
-
         return this.metadataScanner.scanFromPrototype(instance, instancePrototype, method =>
-          this.exploreMethodMetadata(instance, instancePrototype, method),
+          this.exploreMethodMetadata(instance, instancePrototype, method, connectionToken),
         );
       })
       .reduce((prev, curr) => {
@@ -42,9 +37,15 @@ export class ConsumerExplorer {
       });
   }
 
-  private exploreMethodMetadata(_: unknown, instancePrototype: Record<string, unknown>, methodKey: string): ConsumerMetadata | null {
+  private exploreMethodMetadata(
+    _: unknown,
+    instancePrototype: Record<string, unknown>,
+    methodKey: string,
+    connectionToken: string,
+  ): ConsumerMetadata | null {
     const targetCallback = instancePrototype[methodKey];
-    const handler = Reflect.getMetadata(AMQP_CONSUMER_METADATA, targetCallback);
+    const key = `${AMQP_CONSUMER_METADATA}(${connectionToken})`;
+    const handler = Reflect.getMetadata(key, targetCallback);
     if (!handler) {
       return null;
     }

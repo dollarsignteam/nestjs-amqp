@@ -42,6 +42,7 @@ export class ConsumerService {
 
         // handle auto-accept when message is otherwise not handled
         if (!control.isHandled()) {
+          this.logger.debug('AUTO ACCEPT');
           control.accept();
         }
       } catch (error) {
@@ -50,8 +51,6 @@ export class ConsumerService {
         // can't process callback, need to reject message
         control.reject(error.message);
       }
-
-      this.logger.verbose(`handled message on queue '${queueName}'`);
     };
 
     const messageHandler = async (context: EventContext): Promise<void> => {
@@ -62,17 +61,21 @@ export class ConsumerService {
         control.reject(error.message);
       });
     };
-    await this.getReceiver(queueName, options?.connectionName, initialCredit, messageHandler);
+    const concurrent = new Array(options?.concurrency ?? 1).fill(null).map((_, i) => i + 1);
+    for await (const index of concurrent) {
+      await this.getReceiver(queueName, index, options?.connectionName, initialCredit, messageHandler);
+    }
   }
 
   private async getReceiver(
     queueName: string,
+    index: number,
     connectionName: string,
     credit: number,
     messageHandler: (context: EventContext) => Promise<void>,
   ): Promise<Receiver> {
     let receiver: Receiver;
-    const consumerToken = getConsumerToken(connectionName);
+    const consumerToken = `${getConsumerToken(connectionName)}-${index}`;
     if (this.receivers.has(consumerToken)) {
       receiver = this.receivers.get(consumerToken);
     } else {

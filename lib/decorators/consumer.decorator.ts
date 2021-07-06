@@ -3,6 +3,7 @@ import { SetMetadata } from '@nestjs/common';
 import { AMQP_CONSUMER_METADATA } from '../constants';
 import { ConsumerMetadata } from '../domain';
 import { ConsumerOptions } from '../interfaces';
+import { getConnectionToken } from '../utils/get-connection-token';
 
 export const Consumer = (source: string, options?: ConsumerOptions) => {
   return (target: unknown, propertyKey: string, descriptor: PropertyDescriptor): void => {
@@ -12,6 +13,8 @@ export const Consumer = (source: string, options?: ConsumerOptions) => {
     metadata.targetName = target.constructor.name;
     metadata.callback = descriptor.value;
     metadata.callbackName = propertyKey;
-    SetMetadata<string, ConsumerMetadata>(AMQP_CONSUMER_METADATA, metadata)(target, propertyKey, descriptor);
+    const connectionToken = getConnectionToken(options?.connectionName);
+    const key = `${AMQP_CONSUMER_METADATA}(${connectionToken})`;
+    SetMetadata<string, ConsumerMetadata>(key, metadata)(target, propertyKey, descriptor);
   };
 };
