@@ -38,7 +38,7 @@ export class ConsumerService {
         const startTime = new Date();
         await callback(object, control);
         const durationInMs = new Date().getTime() - startTime.getTime();
-        this.logger.log(`handling '${queueName}' finished in ${durationInMs} (ms)`);
+        this.logger.success(`handling '${queueName}' finished in ${durationInMs} (ms)`);
 
         // handle auto-accept when message is otherwise not handled
         if (!control.isHandled()) {
@@ -72,10 +72,10 @@ export class ConsumerService {
     messageHandler: (context: EventContext) => Promise<void>,
   ): Promise<Receiver> {
     let receiver: Receiver;
-    if (this.receivers.has(queueName)) {
-      receiver = this.receivers.get(queueName);
+    const consumerToken = getConsumerToken(connectionName);
+    if (this.receivers.has(consumerToken)) {
+      receiver = this.receivers.get(consumerToken);
     } else {
-      const consumerToken = getConsumerToken(connectionName);
       const onError = (context: EventContext): void => {
         this.logger.error(
           `receiver errored: ${JSON.stringify({
@@ -98,7 +98,7 @@ export class ConsumerService {
         receiverOptions,
       };
       receiver = await this.amqpService.createReceiver(options);
-      this.receivers.set(queueName, receiver);
+      this.receivers.set(consumerToken, receiver);
     }
     return receiver;
   }

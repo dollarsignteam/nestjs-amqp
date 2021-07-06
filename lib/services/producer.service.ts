@@ -47,10 +47,10 @@ export class ProducerService {
    */
   private async getSender(target: string, connectionName: string): Promise<AwaitableSender> {
     let sender: AwaitableSender;
-    if (this.senders.has(target)) {
-      sender = this.senders.get(target);
+    const producerToken = getProducerToken(connectionName);
+    if (this.senders.has(producerToken)) {
+      sender = this.senders.get(producerToken);
     } else {
-      const producerToken = getProducerToken(connectionName);
       const senderOptions: CreateAwaitableSenderOptions = {
         name: producerToken,
         target: {
@@ -63,7 +63,7 @@ export class ProducerService {
         senderOptions,
       };
       sender = await this.amqpService.createSender(createSenderOptions);
-      this.senders.set(target, sender);
+      this.senders.set(producerToken, sender);
     }
     return sender;
   }
