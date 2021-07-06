@@ -1,8 +1,7 @@
 import { Logger } from '@dollarsign/logger';
 import { Consumer, MessageControl, ProducerService, SendOptions } from '@dollarsign/nestjs-amqp';
+import { delay } from '@dollarsign/utils';
 import { Injectable } from '@nestjs/common';
-
-const sleep = (ms: number): Promise<void> => new Promise(r => setTimeout(r, ms));
 
 @Injectable()
 export class AppService {
@@ -39,15 +38,15 @@ export class AppService {
   @Consumer('demo1', { parallelMessageProcessing: 1, concurrency: 2 })
   async receiveMessage1(data: unknown, control: MessageControl): Promise<void> {
     const { message_id } = control.message;
-    this.logger.info(`Received message from amqp1 id: ${message_id}`, data);
-    await sleep(3000);
+    this.logger.trace(`Received message from amqp1 id: ${message_id}`, data);
+    await delay(3000);
   }
 
   @Consumer('demo2', { connectionName: 'amqp', parallelMessageProcessing: 1, concurrency: 2 })
   async receiveMessage2(data: unknown, control: MessageControl): Promise<void> {
     const { message_id } = control.message;
-    this.logger.info(`Received message from amqp2 id: ${message_id}`, data);
-    await sleep(3000);
+    this.logger.trace(`Received message from amqp2 id: ${message_id}`, data);
+    await delay(3000);
     control.accept();
   }
 }
