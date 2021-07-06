@@ -7,17 +7,10 @@ import { AppService } from './app.service';
 @Module({
   imports: [
     AMQPModule.forRoot({
-      name: 'amqp1',
-      connectionOptions: {
-        hostname: 'localhost',
-        port: 5671,
-        username: 'admin',
-        password: 'admin',
-        reconnect: true,
-      },
+      connectionUri: 'amqp://admin:admin@localhost:5671',
     }),
     AMQPModule.forRootAsync({
-      name: 'amqp2',
+      name: 'custom',
       useFactory: () => {
         return {
           connectionOptions: {

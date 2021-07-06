@@ -35,7 +35,7 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
 
   private async attachConsumers(consumers: Array<ConsumerMetadata>): Promise<void> {
     for (const consumer of consumers) {
-      this.logger.silly('Attaching @Consumer', consumer);
+      this.logger.silly(`Attaching @Consumer: ${consumer.callbackName}`);
       const target = this.moduleRef.get(consumer.targetName, { strict: false });
       await this.consumerService.consume(consumer.source, consumer.callback.bind(target), consumer.options);
     }

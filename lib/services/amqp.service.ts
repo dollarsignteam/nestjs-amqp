@@ -18,7 +18,7 @@ export class AMQPService {
    */
   public static async createConnection(options: AMQPModuleOptions): Promise<Connection> {
     const connectionToken = getConnectionToken(options);
-    this.logger.info(`Connection creating: ${connectionToken}`);
+    this.logger.silly(`Connection creating: ${connectionToken}`);
     if (!options) {
       throw new Error(`Invalid connection options: ${connectionToken}`);
     }
@@ -31,7 +31,7 @@ export class AMQPService {
       ...connectionOptions,
     });
     connection.on(ConnectionEvents.connectionOpen, (context: EventContext) => {
-      this.logger.info(`Connection opened: ${connectionToken}`, context.connection.id);
+      this.logger.silly(`Connection opened: ${connectionToken}`, context.connection.id);
     });
     connection.on(ConnectionEvents.connectionError, (context: EventContext) => {
       const error = [`Connection error: ${connectionToken}`];
@@ -70,7 +70,7 @@ export class AMQPService {
     const connection = this.moduleRef.get<Connection>(connectionToken, { strict: false });
     const sender = await connection.createAwaitableSender(senderOptions);
     sender.on(SenderEvents.senderOpen, (context: EventContext) => {
-      AMQPService.logger.info(`Sender opened: ${context?.sender?.name}`);
+      AMQPService.logger.silly(`Sender opened: ${context?.sender?.name}`);
     });
     sender.on(SenderEvents.senderClose, (context: EventContext) => {
       AMQPService.logger.warn(`Sender closed: ${context?.sender?.name}`);
@@ -81,7 +81,7 @@ export class AMQPService {
       });
     });
     sender.on(SenderEvents.senderDraining, (context: EventContext) => {
-      AMQPService.logger.log(`Sender requested to drain its credits by remote peer: ${context?.sender?.name}`);
+      AMQPService.logger.silly(`Sender requested to drain its credits by remote peer: ${context?.sender?.name}`);
     });
     return sender;
   }
@@ -93,15 +93,15 @@ export class AMQPService {
     const receiver: Receiver = await connection.createReceiver(receiverOptions);
     receiver.addCredit(credits);
     receiver.on(ReceiverEvents.receiverOpen, (context: EventContext) => {
-      AMQPService.logger.log(`receiver opened: ${JSON.stringify({ source: context?.receiver?.address })}`);
+      AMQPService.logger.debug(`Receiver opened: ${JSON.stringify({ source: context?.receiver?.address })}`);
       const currentCredits = context.receiver.credit;
       if (currentCredits < credits) {
-        AMQPService.logger.debug('receiver does not have credits, adding credits');
+        AMQPService.logger.silly('Receiver does not have credits, adding credits');
         context.receiver.addCredit(credits - currentCredits);
       }
     });
     receiver.on(ReceiverEvents.receiverClose, (context: EventContext) => {
-      AMQPService.logger.log(`receiver closed: ${JSON.stringify({ queue: context?.receiver?.address })}`);
+      AMQPService.logger.debug(`receiver closed: ${JSON.stringify({ queue: context?.receiver?.address })}`);
     });
     receiver.on(ReceiverEvents.receiverDrained, (context: EventContext) => {
       AMQPService.logger.debug(`remote peer for receiver drained: ${JSON.stringify({ queue: context?.receiver?.address })}`);

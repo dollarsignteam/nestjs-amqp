@@ -27,8 +27,7 @@ export class ConsumerService {
     const initialCredit = !!options && options.parallelMessageProcessing ? options.parallelMessageProcessing : PARALLEL_MESSAGE_COUNT;
 
     const messageValidator = async (context: EventContext, control: MessageControl): Promise<void> => {
-      this.logger.verbose(`incoming message on queue '${queueName}'`);
-
+      this.logger.debug(`incoming message on queue '${queueName}'`);
       const body = context.message.body;
       const objectLike = body instanceof Buffer ? body.toString() : body;
       const object = parseJSON<T>(objectLike);
@@ -80,12 +79,7 @@ export class ConsumerService {
       receiver = this.receivers.get(consumerToken);
     } else {
       const onError = (context: EventContext): void => {
-        this.logger.error(
-          `receiver errored: ${JSON.stringify({
-            source: context.receiver.address,
-            error: context.receiver.error,
-          })}`,
-        );
+        this.logger.error('Receiver error', { source: context?.receiver?.address, error: context?.receiver?.error });
       };
       const receiverOptions: ReceiverOptions = {
         name: consumerToken,

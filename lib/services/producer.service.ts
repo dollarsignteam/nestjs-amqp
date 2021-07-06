@@ -27,6 +27,7 @@ export class ProducerService {
       const sender: AwaitableSender = await this.getSender(target, connectionName);
       const messageToSend: Message = {
         body: jsonStringify(message),
+        durable: true,
         ...options,
       };
       const delivery = await sender.send(messageToSend);
