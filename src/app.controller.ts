@@ -11,8 +11,13 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('send')
-  async sendMessage(): Promise<string> {
-    return this.appService.sendMessage();
+  @Get('send1')
+  async sendMessage1(): Promise<string> {
+    return this.appService.sendMessage1();
+  }
+
+  @Get('send2')
+  async sendMessage2(): Promise<string> {
+    return this.appService.sendMessage2();
   }
 }

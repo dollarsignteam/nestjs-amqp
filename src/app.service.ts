@@ -9,8 +9,13 @@ export class AppService {
     return 'Hello World!';
   }
 
-  async sendMessage(): Promise<string> {
-    await this.producer.send('demo', { foo: 'bar' }, { connectionName: 'amqp1' });
-    return 'Hello World!';
+  async sendMessage1(): Promise<string> {
+    const result = await this.producer.send('demo', { foo: 'bar' }, { connectionName: 'amqp1' });
+    return `Send message to amqp1 connection: ${result}`;
+  }
+
+  async sendMessage2(): Promise<string> {
+    const result = await this.producer.send('demo', { foo: 'bar' }, { connectionName: 'amqp2' });
+    return `Send message to amqp2 connection: ${result}`;
   }
 }
