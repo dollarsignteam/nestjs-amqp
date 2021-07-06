@@ -20,9 +20,17 @@ services:
     ports:
       - 8161:8161
       - 5671:5672
+    volumes:
+      - activemq1-volume:/opt/activemq/data
   activemq-classic2:
     <<: *default-app
     container_name: activemq-classic2
     ports:
       - 8162:8161
       - 5672:5672
+    volumes:
+      - activemq2-volume:/opt/activemq/data
+
+volumes:
+  activemq1-volume:
+  activemq2-volume:
