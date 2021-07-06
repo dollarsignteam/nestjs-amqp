@@ -18,7 +18,6 @@ export class AppService {
     const options: SendOptions = {
       message_id: new Date().getTime(),
       connectionName: name,
-      group_id: 'A',
     };
     const message = { name };
     const result = await this.producer.send('demo', message, options);
