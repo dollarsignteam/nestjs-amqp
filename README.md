@@ -8,6 +8,12 @@ AMQP 1.0 module for [Nest][5]
 
 It is based on the [rhea-promise][6] package and inspired by [nest-amqp][7] package.
 
+## Future
+
+- Multiple connection
+- Multiple consumer
+- Concurrency
+
 ## Installation
 
 ### Yarn
