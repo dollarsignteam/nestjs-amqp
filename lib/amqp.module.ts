@@ -1,5 +1,5 @@
 import { DynamicModule, Global, Inject, Module, OnModuleDestroy, OnModuleInit, Provider, Type } from '@nestjs/common';
-import { MetadataScanner, ModuleRef } from '@nestjs/core';
+import { DiscoveryService, MetadataScanner, ModuleRef } from '@nestjs/core';
 import { Connection } from 'rhea-promise';
 
 import { AMQP_MODULE_OPTIONS } from './constants';
@@ -35,9 +35,10 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
 
   private async attachConsumers(consumers: Array<ConsumerMetadata>): Promise<void> {
     for (const consumer of consumers) {
-      this.logger.silly(`Attaching @Consumer: ${consumer.callbackName}`);
-      const target = this.moduleRef.get(consumer.targetName, { strict: false });
-      await this.consumerService.consume(consumer.source, consumer.callback.bind(target), consumer.options);
+      const { source, callbackName, targetName, callback, options } = consumer;
+      this.logger.silly(`Attaching @Consumer(${source}): ${callbackName}`);
+      const target = this.moduleRef.get(targetName, { strict: false });
+      await this.consumerService.consume(source, callback.bind(target), options);
     }
   }
 
@@ -60,7 +61,7 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
     const moduleOptionsProvider = this.createModuleOptionsProvider(options);
     return {
       module: AMQPModule,
-      providers: [connectionProvider, moduleOptionsProvider, ProducerService, ConsumerService, MetadataScanner, ConsumerExplorer],
+      providers: [connectionProvider, moduleOptionsProvider, ProducerService, ConsumerService, ConsumerExplorer, DiscoveryService, MetadataScanner],
       exports: [connectionProvider, ProducerService, ConsumerService],
     };
   }
@@ -74,7 +75,7 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
     const asyncProviders = this.createAsyncProviders(options);
     return {
       module: AMQPModule,
-      providers: [connectionProvider, ...asyncProviders, ProducerService, ConsumerService, MetadataScanner, ConsumerExplorer],
+      providers: [connectionProvider, ...asyncProviders, ProducerService, ConsumerService, ConsumerExplorer, DiscoveryService, MetadataScanner],
       exports: [connectionProvider, ProducerService, ConsumerService],
     };
   }

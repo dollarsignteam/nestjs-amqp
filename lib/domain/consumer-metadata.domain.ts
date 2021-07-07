@@ -6,4 +6,6 @@ export class ConsumerMetadata {
   public source: string;
   public options: ConsumerOptions;
   public targetName: string;
+  public connectionToken: string;
+  public consumerToken: string;
 }
