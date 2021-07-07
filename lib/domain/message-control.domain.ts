@@ -16,10 +16,10 @@ export class MessageControl {
    */
   public accept(): void {
     if (this.handled) {
-      this.logger.error('message already handled');
+      this.logger.debug('message already handled');
       return;
     }
-    this.logger.verbose('accepting message');
+    this.logger.debug('accepting message');
     this.eventContext.delivery.accept();
     this.handleSettlement();
   }
@@ -36,12 +36,12 @@ export class MessageControl {
    */
   public reject(reason: string | Record<string, unknown>): void {
     if (this.handled) {
-      this.logger.error('message already handled');
+      this.logger.debug('message already handled');
 
       return;
     }
 
-    this.logger.verbose(`rejecting message with reason: ${reason.toString()}`);
+    this.logger.debug(`rejecting message with reason: ${reason.toString()}`);
 
     // condition and description will not be displayed anywhere
     const error: AmqpError = {
@@ -65,12 +65,12 @@ export class MessageControl {
    */
   public release(): void {
     if (this.handled) {
-      this.logger.error('message already handled');
+      this.logger.debug('message already handled');
 
       return;
     }
 
-    this.logger.verbose('releasing message');
+    this.logger.debug('releasing message');
 
     // NOTE: need to be handled this way to trigger retry logic
     this.eventContext.delivery.release({
@@ -104,7 +104,7 @@ export class MessageControl {
     try {
       return typeof reason !== 'string' ? JSON.stringify(reason) : reason;
     } catch (error) {
-      this.logger.error(`could not parse error reason: ${reason}`);
+      this.logger.debug(`could not parse error reason: ${reason}`);
 
       return 'unknown';
     }

@@ -4,4 +4,5 @@ export * from './connection-url.interface';
 export * from './consumer-options.interface';
 export * from './create-receiver-options.interface';
 export * from './create-sender-options.interface';
+export * from './delivery-status.interface';
 export * from './send-options.interface';
