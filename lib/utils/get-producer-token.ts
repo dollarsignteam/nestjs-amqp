@@ -1,6 +1,10 @@
 import { getConnectionToken } from './get-connection-token';
 
-export function getProducerToken(name?: string): string {
-  const connectionToken = getConnectionToken(name);
-  return `${connectionToken}:producer`;
+/**
+ * @param connectionName - connection name
+ * @returns producer token
+ */
+export function getProducerToken(connectionName?: string): string {
+  const connectionToken = getConnectionToken(connectionName);
+  return `producer:${connectionToken}`;
 }

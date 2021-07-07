@@ -1,4 +1,5 @@
 import { parseURL } from '../parse-url';
+
 describe('parseURL', () => {
   it('should throw error when input is http protocol', () => {
     const result = expect(() => parseURL('http://localhost:8080'));

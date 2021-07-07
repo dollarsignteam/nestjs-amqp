@@ -1,13 +1,13 @@
-import { DEFAULT_CONNECTION_NAME } from '../constants';
 import { AMQPModuleOptions } from '../interfaces';
+import { getToken } from './get-token';
 
-function getConnectionName(name: string): string {
-  return name ? `${name}:connection`.toLowerCase().replace(/\s+/g, '-') : DEFAULT_CONNECTION_NAME;
-}
-
+/**
+ * @param connection - connection name or module options
+ * @returns connection token
+ */
 export function getConnectionToken(connection?: AMQPModuleOptions | string): string {
-  if (typeof connection === 'string') {
-    return getConnectionName(connection.trim());
-  }
-  return getConnectionName(connection?.name?.trim());
+  const name = typeof connection === 'string' ? connection : connection?.name;
+  const connectionName = name?.trim() || 'default';
+  const nameToken = getToken(connectionName);
+  return `${nameToken}:connection`;
 }

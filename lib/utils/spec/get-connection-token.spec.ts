@@ -1,5 +1,6 @@
 import { AMQPModuleOptions } from '../../interfaces';
 import { getConnectionToken } from '../get-connection-token';
+
 describe('getConnectionToken', () => {
   it('should return `default:connection`', () => {
     const result = getConnectionToken();
