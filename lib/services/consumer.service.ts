@@ -55,31 +55,29 @@ export class ConsumerService {
     credits: number,
     messageHandler: (context: EventContext) => Promise<void>,
   ): Promise<Receiver> {
-    let receiver: Receiver;
     const { source, connectionToken } = consumer;
     if (this.receivers.has(consumerName)) {
-      receiver = this.receivers.get(consumerName);
-    } else {
-      const onError = (context: EventContext): void => {
-        const { error } = context?.receiver || {};
-        this.logger.error('Receiver error', { name: consumerName, source, error });
-      };
-      const receiverOptions: ReceiverOptions = {
-        source,
-        name: consumerName,
-        onError: onError.bind(this),
-        onMessage: messageHandler.bind(this),
-        autoaccept: false,
-        credit_window: 0,
-      };
-      const createOptions: CreateReceiverOptions = {
-        credits,
-        connectionToken,
-        receiverOptions,
-      };
-      receiver = await this.amqpService.createReceiver(createOptions);
-      this.receivers.set(consumerName, receiver);
+      return this.receivers.get(consumerName);
     }
+    const onError = (context: EventContext): void => {
+      const { error } = context?.receiver || {};
+      this.logger.error('Receiver error', { name: consumerName, source, error });
+    };
+    const receiverOptions: ReceiverOptions = {
+      source,
+      name: consumerName,
+      onError: onError.bind(this),
+      onMessage: messageHandler.bind(this),
+      autoaccept: false,
+      credit_window: 0,
+    };
+    const createOptions: CreateReceiverOptions = {
+      credits,
+      connectionToken,
+      receiverOptions,
+    };
+    const receiver = await this.amqpService.createReceiver(createOptions);
+    this.receivers.set(consumerName, receiver);
     return receiver;
   }
 }

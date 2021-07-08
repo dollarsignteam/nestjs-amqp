@@ -23,21 +23,19 @@ export class ProducerService {
    * @returns state of send
    */
   public async send<T>(target: string, message: T, options?: SendOptions): Promise<DeliveryStatus> {
-    const { connectionName, ...rest } = options || {};
+    const { connectionName, ...messageOptions } = options || {};
     try {
-      const sender: AwaitableSender = await this.getSender(target, connectionName);
-      const messageToSend: Message = {
-        body: jsonStringify(message),
+      const sender = await this.getSender(target, connectionName);
+      const msg: Message = {
         durable: true,
-        ...rest,
+        message_id: getID(),
+        body: jsonStringify(message),
+        ...messageOptions,
       };
-      if (!messageToSend.message_id) {
-        messageToSend.message_id = getID();
-      }
-      const delivery = await sender.send(messageToSend);
+      const delivery = await sender.send(msg);
       const { settled } = delivery;
       if (!settled) {
-        this.logger.warn(`Send message failed: ${target}`, message);
+        this.logger.warn(`Send to ${target} failed message id: ${msg.message_id}`, message);
       }
       return {
         delivery,
@@ -61,39 +59,23 @@ export class ProducerService {
    * @returns sender
    */
   private async getSender(target: string, connectionName: string): Promise<AwaitableSender> {
-    let sender: AwaitableSender;
-    const producerToken = getProducerToken(connectionName);
+    const producerToken = getProducerToken(target, connectionName);
     if (this.senders.has(producerToken)) {
-      sender = this.senders.get(producerToken);
-    } else {
-      const senderOptions: CreateAwaitableSenderOptions = {
-        name: producerToken,
-        target: {
-          address: target,
-          capabilities: ['queue'],
-        },
-        onError: (context: EventContext) => {
-          const senderError = context.sender && context.sender.error;
-          const connection = context.connection;
-          if (senderError) {
-            this.logger.debug(">>>>> [%s] An error occurred for sender '%s': %O.", connection.id, producerToken, senderError);
-          }
-        },
-        onSessionError: (context: EventContext) => {
-          const sessionError = context.session && context.session.error;
-          const connection = context.connection;
-          if (sessionError) {
-            this.logger.debug(">>>>> [%s] An error occurred for session of sender '%s': %O.", connection.id, producerToken, sessionError);
-          }
-        },
-      };
-      const createSenderOptions: CreateSenderOptions = {
-        connectionName,
-        senderOptions,
-      };
-      sender = await this.amqpService.createSender(createSenderOptions);
-      this.senders.set(producerToken, sender);
+      return this.senders.get(producerToken);
     }
+    const senderOptions: CreateAwaitableSenderOptions = {
+      name: producerToken,
+      target: {
+        address: target,
+        capabilities: ['queue'],
+      },
+    };
+    const createOptions: CreateSenderOptions = {
+      connectionName,
+      senderOptions,
+    };
+    const sender = await this.amqpService.createSender(createOptions);
+    this.senders.set(producerToken, sender);
     return sender;
   }
 }
