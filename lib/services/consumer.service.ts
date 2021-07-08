@@ -2,100 +2,83 @@ import { parseJSON } from '@dollarsign/utils';
 import { Injectable } from '@nestjs/common';
 import { EventContext, Receiver, ReceiverOptions } from 'rhea-promise';
 
-import { MessageControl } from '../domain';
-import { ConsumerOptions, CreateReceiverOptions } from '../interfaces';
-import { getConsumerToken, getLogger } from '../utils';
+import { ConsumerMetadata, MessageControl } from '../domain';
+import { CreateReceiverOptions } from '../interfaces';
+import { getLogger } from '../utils';
 import { AMQPService } from './amqp.service';
-
-const PARALLEL_MESSAGE_COUNT = 1;
 
 @Injectable()
 export class ConsumerService {
   private readonly logger = getLogger(ConsumerService.name);
   private readonly receivers: Map<string, Receiver>;
+  private readonly parallelMessageCount = 1;
+  private readonly concurrency = 1;
 
   constructor(private readonly amqpService: AMQPService) {
     this.receivers = new Map<string, Receiver>();
   }
 
-  public async consume<T>(
-    queueName: string,
-    callback: (object: T, control: MessageControl) => Promise<void>,
-    options: ConsumerOptions,
-  ): Promise<void> {
-    // get receiver
-    const initialCredit = !!options && options.parallelMessageProcessing ? options.parallelMessageProcessing : PARALLEL_MESSAGE_COUNT;
-
-    const messageValidator = async (context: EventContext, control: MessageControl): Promise<void> => {
-      this.logger.debug(`incoming message on queue '${queueName}'`);
-      const body = context.message.body;
+  public async consume<T>(consumer: ConsumerMetadata, callback: (object: T, control: MessageControl) => Promise<void>): Promise<void> {
+    const { source, options, consumerToken } = consumer;
+    const credits = options?.parallelMessageProcessing || this.parallelMessageCount;
+    const concurrency = options?.concurrency || this.concurrency;
+    const messageHandler = async (context: EventContext): Promise<void> => {
+      const control: MessageControl = new MessageControl(context);
+      const { message_id, body } = context.message;
+      this.logger.silly(`Incoming message id: ${message_id}`, { source });
       const objectLike = body instanceof Buffer ? body.toString() : body;
       const object = parseJSON<T>(objectLike);
-
       try {
-        // run callback function
         const startTime = new Date();
         await callback(object, control);
         const durationInMs = new Date().getTime() - startTime.getTime();
-        this.logger.success(`handling '${queueName}' finished in ${durationInMs} (ms)`);
-
-        // handle auto-accept when message is otherwise not handled
-        if (!control.isHandled()) {
-          this.logger.debug('AUTO ACCEPT');
+        this.logger.silly(`Handling message id: ${message_id} finished in ${durationInMs / 1000} seconds`);
+        if (!control.isHandled) {
           control.accept();
         }
       } catch (error) {
-        this.logger.error(`error in callback on queue '${queueName}': ${error.message}`, error);
-
-        // can't process callback, need to reject message
-        control.reject(error.message);
+        const { message } = error as Error;
+        this.logger.error(`An error occurred message id: ${message_id}`, { error, source });
+        control.reject(message);
       }
     };
-
-    const messageHandler = async (context: EventContext): Promise<void> => {
-      const control: MessageControl = new MessageControl(context);
-
-      messageValidator(context, control).catch(error => {
-        this.logger.error(`unexpected error happened during message validation on '${context.receiver.address}': ${error.message}`, error);
-        control.reject(error.message);
-      });
-    };
-    const concurrent = new Array(options?.concurrency ?? 1).fill(null).map((_, i) => i + 1);
+    const concurrent = new Array(concurrency).fill(null).map((_, i) => i + 1);
     for await (const index of concurrent) {
-      await this.getReceiver(queueName, index, options?.connectionName, initialCredit, messageHandler);
+      const consumerName = `${consumerToken}-${index}`;
+      await this.getReceiver(consumer, consumerName, credits, messageHandler);
     }
   }
 
   private async getReceiver(
-    queueName: string,
-    index: number,
-    connectionName: string,
-    credit: number,
+    consumer: ConsumerMetadata,
+    consumerName: string,
+    credits: number,
     messageHandler: (context: EventContext) => Promise<void>,
   ): Promise<Receiver> {
     let receiver: Receiver;
-    const consumerToken = `${getConsumerToken(connectionName)}-${index}`;
-    if (this.receivers.has(consumerToken)) {
-      receiver = this.receivers.get(consumerToken);
+    const { source, connectionToken } = consumer;
+    if (this.receivers.has(consumerName)) {
+      receiver = this.receivers.get(consumerName);
     } else {
       const onError = (context: EventContext): void => {
-        this.logger.error('Receiver error', { source: context?.receiver?.address, error: context?.receiver?.error });
+        const { error } = context?.receiver || {};
+        this.logger.error('Receiver error', { name: consumerName, source, error });
       };
       const receiverOptions: ReceiverOptions = {
-        name: consumerToken,
+        source,
+        name: consumerName,
         onError: onError.bind(this),
         onMessage: messageHandler.bind(this),
-        source: queueName,
         autoaccept: false,
         credit_window: 0,
       };
-      const options: CreateReceiverOptions = {
-        connectionName,
-        credits: credit,
+      const createOptions: CreateReceiverOptions = {
+        credits,
+        connectionToken,
         receiverOptions,
       };
-      receiver = await this.amqpService.createReceiver(options);
-      this.receivers.set(consumerToken, receiver);
+      receiver = await this.amqpService.createReceiver(createOptions);
+      this.receivers.set(consumerName, receiver);
     }
     return receiver;
   }

@@ -87,10 +87,9 @@ export class AMQPService {
   }
 
   public async createReceiver(options: CreateReceiverOptions): Promise<Receiver> {
-    const { connectionName, credits, receiverOptions } = options;
-    const connectionToken = getConnectionToken(connectionName);
+    const { connectionToken, credits, receiverOptions } = options;
     const connection = this.moduleRef.get<Connection>(connectionToken, { strict: false });
-    const receiver: Receiver = await connection.createReceiver(receiverOptions);
+    const receiver = await connection.createReceiver(receiverOptions);
     receiver.addCredit(credits);
     receiver.on(ReceiverEvents.receiverOpen, (context: EventContext) => {
       AMQPService.logger.debug(`Receiver opened: ${JSON.stringify({ source: context?.receiver?.address })}`);

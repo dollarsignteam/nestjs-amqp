@@ -80,7 +80,7 @@ export class MessageControl {
     this.handleSettlement();
   }
 
-  public isHandled(): boolean {
+  public get isHandled(): boolean {
     return this.handled;
   }
 

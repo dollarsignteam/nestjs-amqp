@@ -1,7 +1,7 @@
 import { ReceiverOptions as CreateAwaitableReceiverOptions } from 'rhea-promise';
 
 export interface CreateReceiverOptions {
-  connectionName?: string;
+  connectionToken?: string;
   credits: number;
   receiverOptions: CreateAwaitableReceiverOptions;
 }

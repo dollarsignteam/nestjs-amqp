@@ -4,6 +4,7 @@ import { AwaitableSender, CreateAwaitableSenderOptions, EventContext, Message } 
 
 import { CreateSenderOptions, DeliveryStatus, SendOptions } from '../interfaces';
 import { getLogger, getProducerToken } from '../utils';
+import { getID } from '../utils/get-id';
 import { AMQPService } from './amqp.service';
 
 @Injectable()
@@ -22,14 +23,17 @@ export class ProducerService {
    * @returns state of send
    */
   public async send<T>(target: string, message: T, options?: SendOptions): Promise<DeliveryStatus> {
-    const { connectionName } = options || {};
+    const { connectionName, ...rest } = options || {};
     try {
       const sender: AwaitableSender = await this.getSender(target, connectionName);
       const messageToSend: Message = {
         body: jsonStringify(message),
         durable: true,
-        ...options,
+        ...rest,
       };
+      if (!messageToSend.message_id) {
+        messageToSend.message_id = getID();
+      }
       const delivery = await sender.send(messageToSend);
       const { settled } = delivery;
       if (!settled) {
