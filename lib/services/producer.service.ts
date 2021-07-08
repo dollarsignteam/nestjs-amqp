@@ -1,6 +1,6 @@
 import { jsonStringify } from '@dollarsign/utils';
 import { Injectable } from '@nestjs/common';
-import { AwaitableSender, CreateAwaitableSenderOptions, EventContext, Message } from 'rhea-promise';
+import { AwaitableSender, CreateAwaitableSenderOptions, Message } from 'rhea-promise';
 
 import { CreateSenderOptions, DeliveryStatus, SendOptions } from '../interfaces';
 import { getLogger, getProducerToken } from '../utils';
