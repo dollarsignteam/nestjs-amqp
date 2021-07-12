@@ -4,7 +4,7 @@ import { EventContext, Receiver, ReceiverOptions } from 'rhea-promise';
 
 import { ConsumerMetadata, MessageControl } from '../domain';
 import { CreateReceiverOptions } from '../interfaces';
-import { getLogger } from '../utils';
+import { ErrorMessage, getLogger } from '../utils';
 import { AMQPService } from './amqp.service';
 
 @Injectable()
@@ -32,14 +32,14 @@ export class ConsumerService {
         const startTime = new Date();
         await callback(object, control);
         const durationInMs = new Date().getTime() - startTime.getTime();
-        this.logger.silly(`Handling message id: ${message_id} finished in ${durationInMs / 1000} seconds`);
+        this.logger.silly(`Processing message id: ${message_id} finished in ${durationInMs / 1000} seconds`);
         if (!control.isHandled) {
           control.accept();
         }
       } catch (error) {
-        const { message } = error as Error;
+        const errorMessage = ErrorMessage.fromError(error);
         this.logger.error(`An error occurred message id: ${message_id}`, { error, source });
-        control.reject(message);
+        control.reject(errorMessage);
       }
     };
     const concurrent = new Array(concurrency).fill(null).map((_, i) => i + 1);
@@ -60,8 +60,8 @@ export class ConsumerService {
       return this.receivers.get(consumerName);
     }
     const onError = (context: EventContext): void => {
-      const { error } = context?.receiver || {};
-      this.logger.error('Receiver error', { name: consumerName, source, error });
+      const errorMessage = ErrorMessage.fromReceiver(context);
+      this.logger.error('Receiver error', { name: consumerName, source, errorMessage });
     };
     const receiverOptions: ReceiverOptions = {
       source,

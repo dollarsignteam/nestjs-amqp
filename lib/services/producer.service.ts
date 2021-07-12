@@ -3,8 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AwaitableSender, CreateAwaitableSenderOptions, Message } from 'rhea-promise';
 
 import { CreateSenderOptions, DeliveryStatus, SendOptions } from '../interfaces';
-import { ErrorMessage, getLogger, getProducerToken } from '../utils';
-import { getID } from '../utils/get-id';
+import { ErrorMessage, getID, getLogger, getProducerToken } from '../utils';
 import { AMQPService } from './amqp.service';
 
 @Injectable()
