@@ -23,7 +23,7 @@ export class MessageControl {
     if (!this.handled) {
       const message = jsonStringify(reason);
       const { message_id } = this.eventContext.message;
-      this.logger.silly(`Rejecting message id: ${message_id}`, message);
+      this.logger.warn(`Rejecting message id: ${message_id}`, message);
       const error: AmqpError = {
         condition: 'amqp:precondition-failed',
         description: message,
