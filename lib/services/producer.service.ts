@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AwaitableSender, CreateAwaitableSenderOptions, Message } from 'rhea-promise';
 
 import { CreateSenderOptions, DeliveryStatus, SendOptions } from '../interfaces';
-import { getLogger, getProducerToken } from '../utils';
+import { ErrorMessage, getLogger, getProducerToken } from '../utils';
 import { getID } from '../utils/get-id';
 import { AMQPService } from './amqp.service';
 
@@ -42,12 +42,12 @@ export class ProducerService {
         status: settled,
       };
     } catch (error) {
-      const err = error as Error;
-      const connectionClosed = err.message.includes(`Cannot read property 'address' of undefined`);
-      const errorMessage = connectionClosed ? 'connection closed' : err.message;
-      this.logger.error(`Send message error: ${target} ${errorMessage}`, message);
+      const errorMessage = ErrorMessage.fromError(error);
+      const connectionClosed = errorMessage.includes(`Cannot read property 'address' of undefined`);
+      const msg = connectionClosed ? 'connection closed' : errorMessage;
+      this.logger.error(`Send message error: ${target} ${msg}`, message);
       return {
-        error: err,
+        error,
         status: false,
       };
     }
