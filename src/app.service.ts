@@ -20,8 +20,8 @@ export class AppService {
   }
 
   async sendMessage(): Promise<string> {
-    const message = { timestamp: new Date().toISOString() };
-    const result = await this.producer.send<SimpleMessage>('demo1', message);
+    const body = { timestamp: new Date().toISOString() };
+    const result = await this.producer.send<SimpleMessage>('demo1', body);
     const status = result.status ? 'success' : 'failed';
     return `Send to demo1 of default connection: ${status}`;
   }
@@ -34,8 +34,8 @@ export class AppService {
       group_id: groups[index],
       message_id: new Date().getTime(),
     };
-    const message = { timestamp: new Date().toISOString() };
-    const result = await this.producer.send<SimpleMessage>('demo2', message, options);
+    const body = { timestamp: new Date().toISOString() };
+    const result = await this.producer.send<SimpleMessage>('demo2', body, options);
     const status = result.status ? 'success' : 'failed';
     return `Send to demo2 of custom connection: ${status}`;
   }
@@ -48,23 +48,23 @@ export class AppService {
   }
 
   @Consumer('demo1')
-  async receiveMessage(data: SimpleMessage): Promise<void> {
-    this.logger.info('Received from demo1', data);
+  async receiveMessage(body: SimpleMessage): Promise<void> {
+    this.logger.info('Received from demo1', body);
     await delay(this.delayTime);
   }
 
   @Consumer('demo2', { connectionName: 'custom', concurrency: 2 })
-  async receiveMessageWithOptions(data: SimpleMessage, control: MessageControl): Promise<void> {
+  async receiveMessageWithOptions(body: SimpleMessage, control: MessageControl): Promise<void> {
     const { message_id, group_id } = control.message;
-    this.logger.info(`Received from demo2 id: ${message_id}, ${group_id}`, data);
+    this.logger.info(`Received from demo2 id: ${message_id}, ${group_id}`, body);
     await delay(this.delayTime);
     control.accept();
   }
 
   @Consumer('demo3')
-  async receiveError(data: SimpleMessage): Promise<void> {
-    this.logger.info('Received from demo3', data);
+  async receiveError(body: SimpleMessage): Promise<void> {
+    this.logger.info('Received from demo3', body);
     await delay(this.delayTime);
-    throw new Error(`Created at ${data.timestamp}`);
+    throw new Error(`Created at ${body.timestamp}`);
   }
 }
