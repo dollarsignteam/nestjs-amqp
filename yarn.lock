@@ -519,7 +519,7 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@dollarsign/logger@^1.5.2":
+"@dollarsign/logger@^1.5.3":
   version "1.5.3"
   resolved "https://registry.yarnpkg.com/@dollarsign/logger/-/logger-1.5.3.tgz#9d0bf666de3827349859a5ac9e2fb2bfaf21ff4e"
   integrity sha512-XxIuu6q3VnUCePcBc7mY23Am1x8H4TTuTaoccIq6xrUoyb49BwrStHiaKNOQSJYXeYIwbFW6uHxuPztlEV/JQg==
@@ -529,7 +529,7 @@
     source-map-support "^0.5.19"
     winston "^3.3.3"
 
-"@dollarsign/utils@^1.5.8", "@dollarsign/utils@^1.6.0":
+"@dollarsign/utils@^1.6.0":
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/@dollarsign/utils/-/utils-1.6.0.tgz#188a9698001b1f10c97348bc447cf068576a0df1"
   integrity sha512-sdzUKrToR+fFRuUm29BpaNr2j0XwM+OzrxYzkZYkOZOsx26UFKldTdIsd+kFAwImjndBChSGWapNErN8IVqLtg==
