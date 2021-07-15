@@ -24,24 +24,23 @@
   },
   "bugs": "https://github.com/dollarsignteam/nestjs-amqp/issues",
   "scripts": {
+    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' 'lib/**/*.ts'",
+    "lint": "eslint --fix --ext .ts '{src,lib,test}/**/*.ts'",
+    "fix": "tsc --noEmit && yarn format && yarn lint",
+    "prepare": "husky install",
+    "commit": "git-cz",
     "prebuild": "rimraf dist/*",
     "build": "nest build",
-    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' 'lib/**/*.ts'",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
-    "lint": "eslint --ignore-path .gitignore --ext .ts '{src,lib,test}/**/*.ts' --fix",
-    "type-check": "tsc-files --noEmit",
-    "fix": "tsc --noEmit && yarn format && yarn lint",
     "test": "jest --forceExit --detectOpenHandles",
     "test:cov": "npm run test -- --verbose --coverage",
     "test:watch": "npm run test -- --coverage --watchAll",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prepare": "husky install",
-    "semantic-release": "semantic-release",
-    "commit": "git-cz"
+    "semantic-release": "semantic-release"
   },
   "release": {
     "branches": [
