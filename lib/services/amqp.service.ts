@@ -8,7 +8,7 @@ import { ErrorMessage, getConnectionToken, getLogger, parseURL } from '../utils'
 
 @Injectable()
 export class AMQPService {
-  private static readonly logger = getLogger(AMQPService.name);
+  private static readonly logger = getLogger();
 
   constructor(private readonly moduleRef: ModuleRef) {}
 

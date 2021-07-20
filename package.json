@@ -48,8 +48,8 @@
     ]
   },
   "dependencies": {
-    "@dollarsign/logger": "^1.5.3",
-    "@dollarsign/utils": "^1.6.0",
+    "@dollarsign/logger": "^1.5.4",
+    "@dollarsign/utils": "^1.6.2",
     "rhea-promise": "^2.1.0"
   },
   "peerDependencies": {

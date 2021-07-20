@@ -8,7 +8,7 @@ import { AMQPService } from './amqp.service';
 
 @Injectable()
 export class ProducerService {
-  private readonly logger = getLogger(ProducerService.name);
+  private readonly logger = getLogger();
   private readonly senders: Map<string, AwaitableSender>;
 
   constructor(private readonly amqpService: AMQPService) {

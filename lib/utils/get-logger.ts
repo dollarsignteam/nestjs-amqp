@@ -1,12 +1,11 @@
 import { Logger } from '@dollarsign/logger';
 
 /**
- * @param name - logger name
  * @returns `Logger` instance
  */
-export function getLogger(name: string): Logger {
+export function getLogger(): Logger {
   return new Logger({
-    name,
+    name: 'AMQPModule',
     displayFilePath: false,
     displayFunctionName: false,
   });

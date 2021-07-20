@@ -4,7 +4,7 @@ import { AmqpError, EventContext, Message } from 'rhea-promise';
 import { getLogger } from '../utils';
 
 export class MessageControl {
-  private readonly logger = getLogger(MessageControl.name);
+  private readonly logger = getLogger();
   private handled = false;
 
   constructor(private readonly eventContext: EventContext) {}
@@ -23,7 +23,8 @@ export class MessageControl {
     if (!this.handled) {
       const message = jsonStringify(reason);
       const { message_id } = this.eventContext.message;
-      this.logger.warn(`Rejecting message id: ${message_id}`, message);
+      const { address } = this.eventContext.receiver;
+      this.logger.warn(`Rejecting '${address}' id: ${message_id}`, message);
       const error: AmqpError = {
         condition: 'amqp:precondition-failed',
         description: message,
@@ -36,7 +37,8 @@ export class MessageControl {
   public release(): void {
     if (!this.handled) {
       const { message_id } = this.eventContext.message;
-      this.logger.silly(`Releasing message id: ${message_id}`);
+      const { address } = this.eventContext.receiver;
+      this.logger.silly(`Releasing '${address}' id: ${message_id}`);
       this.eventContext.delivery.release({
         undeliverable_here: true,
         delivery_failed: false,

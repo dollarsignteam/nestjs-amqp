@@ -15,7 +15,7 @@ import { getConnectionToken, getLogger } from './utils';
   exports: [AMQPService],
 })
 export class AMQPModule implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = getLogger(AMQPModule.name);
+  private readonly logger = getLogger();
   private readonly connectionToken: string;
 
   constructor(
