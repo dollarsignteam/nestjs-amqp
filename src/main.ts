@@ -19,6 +19,5 @@ async function bootstrap(): Promise<void> {
 (async (): Promise<void> => {
   await bootstrap();
 })().catch((error: Error) => {
-  logger.error(error);
-  process.exit(1);
+  logger.fatal(error);
 });
