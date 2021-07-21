@@ -24,9 +24,9 @@
   },
   "bugs": "https://github.com/dollarsignteam/nestjs-amqp/issues",
   "scripts": {
-    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' 'lib/**/*.ts'",
+    "format": "prettier --check --write 'src/**/*.ts' 'test/**/*.ts' 'lib/**/*.ts'",
     "lint": "eslint --fix --ext .ts '{src,lib,test}/**/*.ts'",
-    "fix": "tsc --noEmit && yarn format && yarn lint",
+    "fix": "tsc --noEmit && yarn format",
     "prepare": "husky install",
     "commit": "git-cz",
     "prebuild": "rimraf dist/*",

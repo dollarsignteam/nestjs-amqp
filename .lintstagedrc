@@ -1,7 +1,6 @@
 {
   "*.ts": [
     "tsc-files --noEmit",
-    "eslint --fix",
-    "prettier --write"
+    "prettier --check --write"
   ]
 }
