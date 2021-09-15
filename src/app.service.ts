@@ -26,13 +26,23 @@ export class AppService {
     return `Send to demo1 of default connection: ${status}`;
   }
 
-  async sendMessageWithOptions(): Promise<string> {
+  getRandomGroupId(): string {
     const index = Math.floor(Math.random() * 100) % 2;
     const groups = ['GroupA', 'GroupB'];
+    return groups[index];
+  }
+
+  async sendMessageWithOptions(): Promise<string> {
+    const messageId = new Date().getTime();
+    const groupId = this.getRandomGroupId();
     const options: SendOptions = {
       connectionName: 'custom',
-      group_id: groups[index],
-      message_id: new Date().getTime(),
+      group_id: groupId,
+      correlation_id: `GROUP:${groupId}`,
+      message_id: messageId,
+      message_annotations: {
+        JMSMessageID: 'A',
+      },
     };
     const body = { timestamp: new Date().toISOString() };
     const result = await this.producer.send<SimpleMessage>('demo2', body, options);
