@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 
 import { AppService } from './app.service';
 
@@ -24,5 +24,10 @@ export class AppController {
   @Get('sendError')
   async sendError(): Promise<string> {
     return this.appService.sendError();
+  }
+
+  @Get('test/:count')
+  async loadTest(@Param('count') count: string): Promise<string> {
+    return this.appService.loadTest(Number(count));
   }
 }

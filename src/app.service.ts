@@ -77,4 +77,27 @@ export class AppService {
     await delay(this.delayTime);
     throw new Error(`Created at ${body.timestamp}`);
   }
+
+  async loadTest(count: number): Promise<string> {
+    const list = Array.from(Array(count).keys());
+    for await (const i of list) {
+      const group = this.getRandomGroupId();
+      const body = { index: i, timestamp: new Date().toISOString() };
+      const result = await this.producer.send<SimpleMessage>(`Topic:${group}`, body);
+      const status = result.status ? 'success' : 'failed';
+      const message = `Send to Topic:${group}[${i}] of default connection: ${status}`;
+      this.logger.info(message);
+    }
+    return 'OK';
+  }
+
+  @Consumer('Topic:GroupA', { concurrency: 10 })
+  async receiveGroupA(body: SimpleMessage): Promise<void> {
+    this.logger.debug('Received from Topic:GroupA', body);
+  }
+
+  @Consumer('Topic:GroupB', { concurrency: 10 })
+  async receiveGroupB(body: SimpleMessage): Promise<void> {
+    this.logger.trace('Received from Topic:GroupB', body);
+  }
 }
