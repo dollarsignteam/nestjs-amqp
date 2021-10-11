@@ -87,6 +87,9 @@ export class AppService {
       const status = result.status ? 'success' : 'failed';
       const message = `Send to Topic:${group}[${i}] of default connection: ${status}`;
       this.logger.info(message);
+      if (result.error) {
+        this.logger.error(result.error);
+      }
     }
     return 'OK';
   }
