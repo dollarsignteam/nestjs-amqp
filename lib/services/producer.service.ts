@@ -1,4 +1,4 @@
-import { jsonStringify } from '@dollarsign/utils';
+import { delay, jsonStringify } from '@dollarsign/utils';
 import { Injectable } from '@nestjs/common';
 import { AwaitableSender, CreateAwaitableSenderOptions, Message } from 'rhea-promise';
 
@@ -10,9 +10,17 @@ import { AMQPService } from './amqp.service';
 export class ProducerService {
   private readonly logger = getLogger();
   private readonly senders: Map<string, AwaitableSender>;
+  private readonly creating: Map<string, boolean>;
 
   constructor(private readonly amqpService: AMQPService) {
     this.senders = new Map<string, AwaitableSender>();
+    this.creating = new Map<string, boolean>();
+  }
+
+  public getRandomInt(min: number, max: number): number {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min);
   }
 
   /**
@@ -31,6 +39,10 @@ export class ProducerService {
         body: jsonStringify(body),
         ...messageOptions,
       };
+      while (!sender.sendable()) {
+        this.logger.warn('Sender insufficient credit, Retry...');
+        await delay(1000 * this.getRandomInt(15, 20));
+      }
       const delivery = await sender.send(msg);
       const { settled } = delivery;
       if (!settled) {
@@ -59,9 +71,16 @@ export class ProducerService {
    */
   private async getSender(target: string, connectionName: string): Promise<AwaitableSender> {
     const producerToken = getProducerToken(target, connectionName);
+    if (this.creating.has(producerToken)) {
+      await delay(2000);
+    }
     if (this.senders.has(producerToken)) {
       return this.senders.get(producerToken);
     }
+    if (this.creating.has(producerToken)) {
+      return this.getSender(target, connectionName);
+    }
+    this.creating.set(producerToken, true);
     const senderOptions: CreateAwaitableSenderOptions = {
       name: producerToken,
       target: {
@@ -75,6 +94,7 @@ export class ProducerService {
     };
     const sender = await this.amqpService.createSender(createOptions);
     this.senders.set(producerToken, sender);
+    this.creating.delete(producerToken);
     return sender;
   }
 }

@@ -78,29 +78,31 @@ export class AppService {
     throw new Error(`Created at ${body.timestamp}`);
   }
 
-  async loadTest(count: number): Promise<string> {
+  async loadTestA(count: number): Promise<void> {
+    const topic = 'Topic:LoadTestA';
     const list = Array.from(Array(count).keys());
     for await (const i of list) {
-      const group = this.getRandomGroupId();
       const body = { index: i, timestamp: new Date().toISOString() };
-      const result = await this.producer.send<SimpleMessage>(`Topic:${group}`, body);
-      const status = result.status ? 'success' : 'failed';
-      const message = `Send to Topic:${group}[${i}] of default connection: ${status}`;
-      this.logger.info(message);
+      const result = await this.producer.send<SimpleMessage>(topic, body);
       if (result.error) {
         this.logger.error(result.error);
+      } else {
+        this.logger.info(`Send to ${topic}[${i}]`);
       }
     }
-    return 'OK';
   }
 
-  @Consumer('Topic:GroupA', { concurrency: 10 })
-  async receiveGroupA(body: SimpleMessage): Promise<void> {
-    this.logger.debug('Received from Topic:GroupA', body);
-  }
-
-  @Consumer('Topic:GroupB', { concurrency: 10 })
-  async receiveGroupB(body: SimpleMessage): Promise<void> {
-    this.logger.trace('Received from Topic:GroupB', body);
+  async loadTestB(count: number): Promise<void> {
+    const topic = 'Topic:LoadTestB';
+    const list = Array.from(Array(count).keys());
+    list.forEach(async i => {
+      const body = { index: i, timestamp: new Date().toISOString() };
+      const result = await this.producer.send<SimpleMessage>(topic, body);
+      if (result.error) {
+        this.logger.error(result.error);
+      } else {
+        this.logger.info(`Send to ${topic}[${i}]`);
+      }
+    });
   }
 }

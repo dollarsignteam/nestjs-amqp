@@ -26,8 +26,15 @@ export class AppController {
     return this.appService.sendError();
   }
 
-  @Get('test/:count')
-  async loadTest(@Param('count') count: string): Promise<string> {
-    return this.appService.loadTest(Number(count));
+  @Get('testA/:count')
+  async loadTestA(@Param('count') count: string): Promise<string> {
+    await this.appService.loadTestA(Number(count));
+    return 'Done';
+  }
+
+  @Get('testB/:count')
+  async loadTestB(@Param('count') count: string): Promise<string> {
+    await this.appService.loadTestB(Number(count));
+    return 'Done';
   }
 }

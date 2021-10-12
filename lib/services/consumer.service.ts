@@ -1,4 +1,4 @@
-import { parseJSON } from '@dollarsign/utils';
+import { delay, parseJSON } from '@dollarsign/utils';
 import { Injectable } from '@nestjs/common';
 import { EventContext, Receiver, ReceiverOptions } from 'rhea-promise';
 
@@ -11,11 +11,13 @@ import { AMQPService } from './amqp.service';
 export class ConsumerService {
   private readonly logger = getLogger();
   private readonly receivers: Map<string, Receiver>;
+  private readonly creating: Map<string, boolean>;
   private readonly parallelMessageCount = 1;
   private readonly concurrency = 1;
 
   constructor(private readonly amqpService: AMQPService) {
     this.receivers = new Map<string, Receiver>();
+    this.creating = new Map<string, boolean>();
   }
 
   public async consume<T>(consumer: ConsumerMetadata, callback: (object: T, control: MessageControl) => Promise<void>): Promise<void> {
@@ -56,9 +58,16 @@ export class ConsumerService {
     messageHandler: (context: EventContext) => Promise<void>,
   ): Promise<Receiver> {
     const { source, connectionToken } = consumer;
+    if (this.creating.has(consumerName)) {
+      await delay(1000);
+    }
     if (this.receivers.has(consumerName)) {
       return this.receivers.get(consumerName);
     }
+    if (this.creating.has(consumerName)) {
+      return this.getReceiver(consumer, consumerName, credits, messageHandler);
+    }
+    this.creating.set(consumerName, true);
     const onError = (context: EventContext): void => {
       const errorMessage = ErrorMessage.fromReceiver(context);
       this.logger.error('Receiver error', { name: consumerName, source, errorMessage });
@@ -78,6 +87,7 @@ export class ConsumerService {
     };
     const receiver = await this.amqpService.createReceiver(createOptions);
     this.receivers.set(consumerName, receiver);
+    this.creating.delete(consumerName);
     return receiver;
   }
 }
