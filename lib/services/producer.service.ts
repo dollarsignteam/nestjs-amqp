@@ -1,4 +1,4 @@
-import { delay, jsonStringify } from '@dollarsign/utils';
+import { delay, getRandomInt, jsonStringify } from '@dollarsign/utils';
 import { Injectable } from '@nestjs/common';
 import { AwaitableSender, CreateAwaitableSenderOptions, Message } from 'rhea-promise';
 
@@ -15,12 +15,6 @@ export class ProducerService {
   constructor(private readonly amqpService: AMQPService) {
     this.senders = new Map<string, AwaitableSender>();
     this.creating = new Map<string, boolean>();
-  }
-
-  public getRandomInt(min: number, max: number): number {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min) + min);
   }
 
   /**
@@ -41,7 +35,7 @@ export class ProducerService {
       };
       while (!sender.sendable()) {
         this.logger.warn('Sender insufficient credit, Retry...');
-        await delay(1000 * this.getRandomInt(15, 20));
+        await delay(1000 * getRandomInt(10, 20));
       }
       const delivery = await sender.send(msg);
       const { settled } = delivery;
