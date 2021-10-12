@@ -1,5 +1,6 @@
 import { DynamicModule, Global, Inject, Module, OnModuleDestroy, OnModuleInit, Provider, Type } from '@nestjs/common';
 import { DiscoveryService, MetadataScanner, ModuleRef } from '@nestjs/core';
+import { UnknownElementException } from '@nestjs/core/errors/exceptions/unknown-element.exception';
 import { Connection } from 'rhea-promise';
 
 import { AMQP_MODULE_OPTIONS } from './constants';
@@ -35,10 +36,19 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
 
   private async attachConsumers(consumers: ConsumerMetadata[]): Promise<void> {
     for (const consumer of consumers) {
-      const { source, callbackName, targetName, callback } = consumer;
+      const { source, callbackName, target, targetName, callback } = consumer;
       this.logger.silly(`Attaching @Consumer(${source}): ${callbackName}`);
-      const target = this.moduleRef.get(targetName, { strict: false });
-      await this.consumerService.consume(consumer, callback.bind(target));
+      let targetProcess: unknown;
+      try {
+        targetProcess = this.moduleRef.get(target, { strict: false });
+      } catch (error) {
+        if (error instanceof UnknownElementException) {
+          targetProcess = this.moduleRef.get(targetName, { strict: false });
+        } else {
+          throw error;
+        }
+      }
+      await this.consumerService.consume(consumer, callback.bind(targetProcess));
     }
   }
 

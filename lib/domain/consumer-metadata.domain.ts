@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ConsumerOptions } from '../interfaces';
 
 export class ConsumerMetadata {
@@ -8,4 +9,5 @@ export class ConsumerMetadata {
   public targetName: string;
   public connectionToken: string;
   public consumerToken: string;
+  public target: any;
 }

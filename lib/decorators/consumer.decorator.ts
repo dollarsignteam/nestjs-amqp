@@ -12,6 +12,7 @@ export const Consumer = (source: string, options?: ConsumerOptions) => {
     metadata.options = options;
     metadata.callbackName = propertyKey;
     metadata.callback = descriptor.value;
+    metadata.target = target.constructor;
     metadata.targetName = target.constructor.name;
     metadata.connectionToken = getConnectionToken(options?.connectionName);
     metadata.consumerToken = getConsumerToken(source, options?.connectionName);
