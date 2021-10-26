@@ -56,6 +56,7 @@ export class ConsumerService {
     consumerName: string,
     credits: number,
     messageHandler: (context: EventContext) => Promise<void>,
+    retry = 0,
   ): Promise<Receiver> {
     const { source, connectionToken } = consumer;
     if (this.creating.has(consumerName)) {
@@ -65,7 +66,10 @@ export class ConsumerService {
       return this.receivers.get(consumerName);
     }
     if (this.creating.has(consumerName)) {
-      return this.getReceiver(consumer, consumerName, credits, messageHandler);
+      if (retry > 10) {
+        throw new Error('Create receiver error: Maximum retry attempts');
+      }
+      return this.getReceiver(consumer, consumerName, credits, messageHandler, retry++);
     }
     this.creating.set(consumerName, true);
     const onError = (context: EventContext): void => {

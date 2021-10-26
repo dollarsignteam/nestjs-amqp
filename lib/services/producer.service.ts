@@ -63,7 +63,7 @@ export class ProducerService {
    * @param connectionName - connection name
    * @returns sender
    */
-  private async getSender(target: string, connectionName: string): Promise<AwaitableSender> {
+  private async getSender(target: string, connectionName: string, retry = 0): Promise<AwaitableSender> {
     const producerToken = getProducerToken(target, connectionName);
     if (this.creating.has(producerToken)) {
       await delay(2000);
@@ -72,7 +72,10 @@ export class ProducerService {
       return this.senders.get(producerToken);
     }
     if (this.creating.has(producerToken)) {
-      return this.getSender(target, connectionName);
+      if (retry > 10) {
+        throw new Error('Create sender error: Maximum retry attempts');
+      }
+      return this.getSender(target, connectionName, retry++);
     }
     this.creating.set(producerToken, true);
     const senderOptions: CreateAwaitableSenderOptions = {
