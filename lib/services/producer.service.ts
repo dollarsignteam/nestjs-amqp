@@ -35,7 +35,8 @@ export class ProducerService {
       };
       while (!sender.sendable()) {
         this.logger.warn('Sender insufficient credit, Retry...');
-        await delay(1000 * getRandomInt(10, 20));
+        const delayTime = getRandomInt(10, 20) * 1000;
+        await delay(delayTime);
       }
       const delivery = await sender.send(msg);
       const { settled } = delivery;
