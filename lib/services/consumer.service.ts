@@ -27,14 +27,10 @@ export class ConsumerService {
     const messageHandler = async (context: EventContext): Promise<void> => {
       const control: MessageControl = new MessageControl(context);
       const { message_id, body } = context.message;
-      this.logger.silly(`Incoming '${source}' id: ${message_id}`);
       const objectLike = body instanceof Buffer ? body.toString() : body;
       const object = parseJSON<T>(objectLike);
       try {
-        const startTime = new Date();
         await callback(object, control);
-        const durationInMs = new Date().getTime() - startTime.getTime();
-        this.logger.silly(`Completed '${source}' id: ${message_id} in ${durationInMs / 1000} seconds`);
         if (!control.isHandled) {
           control.accept();
         }
