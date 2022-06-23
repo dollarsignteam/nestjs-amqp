@@ -2,17 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
-import {
-  AwaitableSender,
-  Connection,
-  ConnectionEvents,
-  ConnectionOptions,
-  Container,
-  EventContext,
-  Receiver,
-  ReceiverEvents,
-  SenderEvents,
-} from 'rhea-promise';
+import { AwaitableSender, Connection, ConnectionEvents, Container, EventContext, Receiver, ReceiverEvents, SenderEvents } from 'rhea-promise';
 
 import { AMQP_CONNECTION_RECONNECT } from '../constants';
 import { AMQPModuleOptions, CreateReceiverOptions, CreateSenderOptions } from '../interfaces';
@@ -42,7 +32,7 @@ export class AMQPService {
     const container = new Container({
       id: `${connectionToken}:${hostname()}:${new Date().getTime()}`.toLowerCase(),
     });
-    let connection = container.createConnection({
+    const connection = container.createConnection({
       ...(!!connectionUri ? parseURL(connectionUri) : {}),
       ...connectionOptions,
     });
@@ -70,18 +60,24 @@ export class AMQPService {
     } catch (err) {
       const errorMessage = ErrorMessage.fromError(err);
       this.logger.error(`Connection open failed: ${connectionToken}`, errorMessage);
-      connection?.removeAllListeners();
-      connection = await AMQPService.handleConnectionDisconnected(options);
-      if (connection?.isOpen()) {
-        AMQPService.eventEmitter.emit(AMQP_CONNECTION_RECONNECT);
-      }
+      let retry = 0;
+      do {
+        this.logger.silly(`reopening connection...`);
+        retry++;
+        await new Promise(resolve => setTimeout(resolve, options.connectionOptions?.initial_reconnect_delay ?? 3000));
+        try {
+          await connection.open();
+          if (connection.isOpen()) {
+            AMQPService.eventEmitter.emit(AMQP_CONNECTION_RECONNECT);
+            return;
+          }
+        } catch (err) {
+          const errorMessage = ErrorMessage.fromError(err);
+          this.logger.error(`Connection reopen failed: ${connectionToken}`, errorMessage);
+        }
+      } while (retry < (options.connectionOptions?.reconnect_limit ?? 3) && !connection.isOpen());
     }
     return connection;
-  }
-
-  public static async handleConnectionDisconnected(options: AMQPModuleOptions) {
-    await new Promise(resolve => setTimeout(resolve, options.connectionOptions?.initial_reconnect_delay ?? 3000));
-    return AMQPService.createConnection(options);
   }
 
   /**
