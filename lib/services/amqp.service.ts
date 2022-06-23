@@ -1,14 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
+import { EventEmitter } from 'events';
 import { hostname } from 'os';
 import { AwaitableSender, Connection, ConnectionEvents, Container, EventContext, Receiver, ReceiverEvents, SenderEvents } from 'rhea-promise';
 
+import { AMQP_CONNECTION_RECONNECT } from '../constants';
 import { AMQPModuleOptions, CreateReceiverOptions, CreateSenderOptions } from '../interfaces';
 import { ErrorMessage, getConnectionToken, getLogger, parseURL } from '../utils';
 
 @Injectable()
 export class AMQPService {
   private static readonly logger = getLogger();
+  /**
+   * Event emitter for AMQP to show what is happening with the created connection.
+   */
+  public static readonly eventEmitter: EventEmitter = new EventEmitter();
 
   constructor(private readonly moduleRef: ModuleRef) {}
 
@@ -48,6 +54,24 @@ export class AMQPService {
       } else {
         this.logger.warn(error);
       }
+      const timeoutHandler = setTimeout(async () => {
+        (context.connection as any)._connection.dispatch(ConnectionEvents.disconnected, void 0);
+        await context.connection
+          .open()
+          .then(() => {
+            this.logger.silly('connection successfully reopened');
+            const emitted = AMQPService.eventEmitter.emit(AMQP_CONNECTION_RECONNECT);
+
+            // istanbul ignore next: mocking out the event emitter is unnecessary
+            if (!emitted) {
+              this.logger.warn('reconnect event not emitted');
+            }
+          })
+          .catch(error => {
+            this.logger.error(`reopening connection failed with error: ${error.message}`, error);
+          });
+        clearTimeout(timeoutHandler);
+      }, 1000);
     });
     try {
       await connection.open();
