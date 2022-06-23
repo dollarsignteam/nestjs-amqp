@@ -3,7 +3,7 @@ import { DiscoveryService, MetadataScanner, ModuleRef } from '@nestjs/core';
 import { UnknownElementException } from '@nestjs/core/errors/exceptions/unknown-element.exception';
 import { Connection } from 'rhea-promise';
 
-import { AMQP_MODULE_OPTIONS } from './constants';
+import { AMQP_CONNECTION_RECONNECT, AMQP_MODULE_OPTIONS } from './constants';
 import { ConsumerMetadata } from './domain';
 import { ConsumerExplorer } from './explorers';
 import { AMQPModuleAsyncOptions, AMQPModuleOptions, AMQPModuleOptionsFactory } from './interfaces';
@@ -32,6 +32,15 @@ export class AMQPModule implements OnModuleInit, OnModuleDestroy {
   public async onModuleInit(): Promise<void> {
     const consumers = this.consumerExplorer.explore(this.connectionToken);
     await this.attachConsumers(consumers);
+
+    AMQPService.eventEmitter.on(AMQP_CONNECTION_RECONNECT, () => {
+      this.logger.silly('reattaching consumers to connection');
+      const connection = this.moduleRef.get<Connection>(this.connectionToken);
+      connection.removeAllListeners();
+      this.attachConsumers(consumers)
+        .then(() => this.logger.silly('consumers reattached'))
+        .catch(error => this.logger.error('error while reattaching consumers', error));
+    });
   }
 
   private async attachConsumers(consumers: ConsumerMetadata[]): Promise<void> {
