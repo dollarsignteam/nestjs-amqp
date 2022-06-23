@@ -2,7 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
-import { AwaitableSender, Connection, ConnectionEvents, Container, EventContext, Receiver, ReceiverEvents, SenderEvents } from 'rhea-promise';
+import {
+  AwaitableSender,
+  Connection,
+  ConnectionEvents,
+  ConnectionOptions,
+  Container,
+  EventContext,
+  Receiver,
+  ReceiverEvents,
+  SenderEvents,
+} from 'rhea-promise';
 
 import { AMQP_CONNECTION_RECONNECT } from '../constants';
 import { AMQPModuleOptions, CreateReceiverOptions, CreateSenderOptions } from '../interfaces';
@@ -32,7 +42,7 @@ export class AMQPService {
     const container = new Container({
       id: `${connectionToken}:${hostname()}:${new Date().getTime()}`.toLowerCase(),
     });
-    const connection = container.createConnection({
+    let connection = container.createConnection({
       ...(!!connectionUri ? parseURL(connectionUri) : {}),
       ...connectionOptions,
     });
@@ -54,32 +64,24 @@ export class AMQPService {
       } else {
         this.logger.warn(error);
       }
-      const timeoutHandler = setTimeout(async () => {
-        (context.connection as any)._connection.dispatch(ConnectionEvents.disconnected, void 0);
-        await context.connection
-          .open()
-          .then(() => {
-            this.logger.silly('connection successfully reopened');
-            const emitted = AMQPService.eventEmitter.emit(AMQP_CONNECTION_RECONNECT);
-
-            // istanbul ignore next: mocking out the event emitter is unnecessary
-            if (!emitted) {
-              this.logger.warn('reconnect event not emitted');
-            }
-          })
-          .catch(error => {
-            this.logger.error(`reopening connection failed with error: ${error.message}`, error);
-          });
-        clearTimeout(timeoutHandler);
-      }, 1000);
     });
     try {
       await connection.open();
     } catch (err) {
       const errorMessage = ErrorMessage.fromError(err);
       this.logger.error(`Connection open failed: ${connectionToken}`, errorMessage);
+      connection?.removeAllListeners();
+      connection = await AMQPService.handleConnectionDisconnected(options);
+      if (connection?.isOpen()) {
+        AMQPService.eventEmitter.emit(AMQP_CONNECTION_RECONNECT);
+      }
     }
     return connection;
+  }
+
+  public static async handleConnectionDisconnected(options: AMQPModuleOptions) {
+    await new Promise(resolve => setTimeout(resolve, options.connectionOptions?.initial_reconnect_delay ?? 3000));
+    return AMQPService.createConnection(options);
   }
 
   /**
