@@ -4,7 +4,7 @@ import { EventEmitter } from 'events';
 import { hostname } from 'os';
 import { AwaitableSender, Connection, ConnectionEvents, Container, EventContext, Receiver, ReceiverEvents, SenderEvents } from 'rhea-promise';
 
-import { AMQP_CONNECTION_RECONNECT } from '../constants';
+import { AMQP_CONNECTION_DISCONNECTED, AMQP_CONNECTION_RECONNECT } from '../constants';
 import { AMQPModuleOptions, CreateReceiverOptions, CreateSenderOptions } from '../interfaces';
 import { ErrorMessage, getConnectionToken, getLogger, parseURL } from '../utils';
 
@@ -46,6 +46,10 @@ export class AMQPService {
     connection.on(ConnectionEvents.disconnected, (context: EventContext) => {
       const error = [`Connection closed by peer: ${connectionToken}`, ErrorMessage.fromContext(context)];
       this.logger.warn(...error.filter(e => e));
+      const emitted = AMQPService.eventEmitter.emit(AMQP_CONNECTION_DISCONNECTED);
+      if (!emitted) {
+        this.logger.warn('disconnect event not emitted');
+      }
     });
     connection.on(ConnectionEvents.connectionClose, (context: EventContext) => {
       const error = `Connection closed: ${connectionToken}`;
@@ -61,8 +65,6 @@ export class AMQPService {
           .then(() => {
             this.logger.silly('connection successfully reopened');
             const emitted = AMQPService.eventEmitter.emit(AMQP_CONNECTION_RECONNECT);
-
-            // istanbul ignore next: mocking out the event emitter is unnecessary
             if (!emitted) {
               this.logger.warn('reconnect event not emitted');
             }

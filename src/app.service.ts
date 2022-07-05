@@ -1,5 +1,5 @@
 import { Logger } from '@dollarsign/logger';
-import { Consumer, MessageControl, ProducerService, SendOptions } from '@dollarsign/nestjs-amqp';
+import { AMQP_CONNECTION_DISCONNECTED, AMQPService, Consumer, MessageControl, ProducerService, SendOptions } from '@dollarsign/nestjs-amqp';
 import { delay } from '@dollarsign/utils';
 import { Injectable } from '@nestjs/common';
 
@@ -13,7 +13,15 @@ export class AppService {
     displayFilePath: false,
   });
 
-  constructor(private readonly producer: ProducerService) {}
+  constructor(private readonly producer: ProducerService) {
+    this.bindListener();
+  }
+
+  async bindListener() {
+    AMQPService.eventEmitter.on(AMQP_CONNECTION_DISCONNECTED, () => {
+      this.logger.debug('received disconnected event');
+    });
+  }
 
   getHello(): string {
     return 'Hello World!';
