@@ -80,6 +80,22 @@ export class AMQPService {
     } catch (err) {
       const errorMessage = ErrorMessage.fromError(err);
       this.logger.error(`Connection open failed: ${connectionToken}`, errorMessage);
+      let retry = 0;
+      do {
+        this.logger.silly(`reopening connection...`);
+        retry++;
+        await new Promise(resolve => setTimeout(resolve, options.connectionOptions?.initial_reconnect_delay ?? 3000));
+        try {
+          await connection.open();
+          if (connection.isOpen()) {
+            AMQPService.eventEmitter.emit(AMQP_CONNECTION_RECONNECT);
+            return;
+          }
+        } catch (err) {
+          const errorMessage = ErrorMessage.fromError(err);
+          this.logger.error(`Connection reopen failed: ${connectionToken}`, errorMessage);
+        }
+      } while (retry < (options.connectionOptions?.reconnect_limit ?? 3) && !connection.isOpen());
     }
     return connection;
   }
